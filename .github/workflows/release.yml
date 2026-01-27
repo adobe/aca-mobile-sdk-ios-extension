@@ -1,0 +1,207 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+      
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app
+      
+    - name: Validate tag format
+      run: |
+        TAG=${GITHUB_REF#refs/tags/}
+        if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+|-rc\.[0-9]+)?$ ]]; then
+          echo "❌ Invalid tag format: $TAG"
+          echo "Expected: v1.0.0, v1.0.0-beta.1, or v1.0.0-rc.1"
+          exit 1
+        fi
+        echo "✅ Valid tag format: $TAG"
+        
+    - name: Extract version
+      id: version
+      run: |
+        TAG=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$TAG" >> $GITHUB_OUTPUT
+        echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        if [[ $TAG =~ -beta\. ]]; then
+          echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
+          echo "RELEASE_TYPE=beta" >> $GITHUB_OUTPUT
+        elif [[ $TAG =~ -rc\. ]]; then
+          echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
+          echo "RELEASE_TYPE=rc" >> $GITHUB_OUTPUT
+        else
+          echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
+          echo "RELEASE_TYPE=stable" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Verify version in code
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        CODE_VERSION=$(grep 'EXTENSION_VERSION = ' AEPContentAnalytics/Sources/Constants/Core/ContentAnalyticsConstants.swift | sed 's/.*"\(.*\)".*/\1/')
+        
+        if [ "$VERSION" != "$CODE_VERSION" ]; then
+          echo "❌ Version mismatch!"
+          echo "   Tag version: $VERSION"
+          echo "   Code version: $CODE_VERSION"
+          exit 1
+        fi
+        echo "✅ Version matches: $VERSION"
+        
+    - name: Install dependencies
+      run: make ci-pod-install
+      
+    - name: Run tests
+      run: make test
+      
+    - name: Run lint
+      run: make lint
+      
+    - name: Build XCFramework
+      run: make archive
+      
+    - name: Upload XCFramework
+      uses: actions/upload-artifact@v4
+      with:
+        name: AEPContentAnalytics.xcframework
+        path: build/AEPContentAnalytics.xcframework/
+        retention-days: 30
+        
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      tag: ${{ steps.version.outputs.TAG }}
+      is_prerelease: ${{ steps.version.outputs.IS_PRERELEASE }}
+      release_type: ${{ steps.version.outputs.RELEASE_TYPE }}
+      
+  create-release:
+    name: Create GitHub Release
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Extract changelog
+      id: changelog
+      run: |
+        VERSION="${{ needs.validate.outputs.version }}"
+        
+        # Extract changelog section for this version
+        awk "/## $VERSION/,/## [0-9]/" CHANGELOG.md | sed '$d' > release_notes.md
+        
+        # If empty, use a default message
+        if [ ! -s release_notes.md ]; then
+          echo "Release $VERSION" > release_notes.md
+          echo "" >> release_notes.md
+          echo "See CHANGELOG.md for details." >> release_notes.md
+        fi
+        
+    - name: Download XCFramework
+      uses: actions/download-artifact@v4
+      with:
+        name: AEPContentAnalytics.xcframework
+        path: build/AEPContentAnalytics.xcframework
+        
+    - name: Create XCFramework archive
+      run: |
+        cd build
+        zip -r AEPContentAnalytics-${{ needs.validate.outputs.version }}.xcframework.zip AEPContentAnalytics.xcframework
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.validate.outputs.tag }}
+        name: Release ${{ needs.validate.outputs.version }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ needs.validate.outputs.is_prerelease == 'true' }}
+        files: |
+          build/AEPContentAnalytics-${{ needs.validate.outputs.version }}.xcframework.zip
+          CHANGELOG.md
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+  publish-cocoapods:
+    name: Publish to CocoaPods
+    needs: [validate, create-release]
+    runs-on: macos-14
+    if: needs.validate.outputs.release_type != 'beta'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Check CocoaPods Token
+      run: |
+        if [ -z "${{ secrets.COCOAPODS_TRUNK_TOKEN }}" ]; then
+          echo "⚠️  COCOAPODS_TRUNK_TOKEN secret not configured"
+          echo "   Skipping CocoaPods publishing"
+          echo "   To enable: Add COCOAPODS_TRUNK_TOKEN to GitHub Secrets"
+          exit 0
+        fi
+        echo "✅ CocoaPods token found"
+        
+    - name: Install CocoaPods
+      if: secrets.COCOAPODS_TRUNK_TOKEN != ''
+      run: gem install cocoapods
+      
+    - name: Validate Podspec
+      if: secrets.COCOAPODS_TRUNK_TOKEN != ''
+      run: pod spec lint AEPContentAnalytics.podspec --allow-warnings
+      
+    - name: Publish to CocoaPods
+      if: secrets.COCOAPODS_TRUNK_TOKEN != ''
+      env:
+        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+      run: |
+        pod trunk push AEPContentAnalytics.podspec --allow-warnings
+        
+  notify:
+    name: Notify Release
+    needs: [validate, create-release]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Release Summary
+      run: |
+        echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** ${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Type:** ${{ needs.validate.outputs.release_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Pre-release:** ${{ needs.validate.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Status:** ✅ Release published successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ needs.validate.outputs.release_type }}" == "beta" ]; then
+          echo "- Share with beta testers" >> $GITHUB_STEP_SUMMARY
+          echo "- Gather feedback" >> $GITHUB_STEP_SUMMARY
+          echo "- Plan RC release" >> $GITHUB_STEP_SUMMARY
+        elif [ "${{ needs.validate.outputs.release_type }}" == "rc" ]; then
+          echo "- Final testing" >> $GITHUB_STEP_SUMMARY
+          echo "- Security audit" >> $GITHUB_STEP_SUMMARY
+          echo "- Prepare GA release" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Monitor for issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Update documentation" >> $GITHUB_STEP_SUMMARY
+          echo "- Announce release" >> $GITHUB_STEP_SUMMARY
+        fi
+

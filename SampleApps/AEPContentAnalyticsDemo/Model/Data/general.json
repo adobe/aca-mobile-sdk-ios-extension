@@ -1,0 +1,33 @@
+{
+    "config": {
+        "tenant": "_techmarketingdemos",
+        "sandbox": "mobile-and-web-sdk-courses",
+        "showProducts": true,
+        "showPersonalisation": true,
+        "showGeofences": true,
+        "showBeacons": false,
+        "ldap": "testUser",
+        "emailDomain": "gmail.com",
+        "tms": "AEP Data Collection"
+    },
+    "customer": {
+        "name": "Luma",
+        "logo": "https://ridmaur.github.io/tutorial/luma/images/luma-logo01.png",
+        "productsType": "Products",
+        "productsSystemImage": "cart",
+        "currency": "€"
+    },
+    "testPush": {
+        "name": "Mobile App Test Push",
+        "eventType": "application.test"
+    },
+    "target": {
+        "location": "luma-mobileapp-abtest"
+    },
+    "map": {
+        "latitude": 52.37109,
+        "longitude": 4.8919,
+        "zoom": 2
+    }
+}
+

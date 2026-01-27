@@ -1,0 +1,99 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-and-test-ios:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        xcode: ['15.2']
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+      
+    - name: Select Xcode ${{ matrix.xcode }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
+      
+    - name: Show Xcode version
+      run: xcodebuild -version
+      
+    - name: Install dependencies
+      run: make ci-pod-install
+      
+    - name: Run iOS unit tests
+      run: make unit-test-ios
+      
+    - name: Upload iOS test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ios-test-results
+        path: build/reports/iosUnitResults.xcresult
+        
+    - name: Upload code coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: build/reports/iosUnitResults.xcresult
+        flags: ios
+        name: iOS Coverage
+        
+  build-and-test-tvos:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        xcode: ['15.2']
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+      
+    - name: Select Xcode ${{ matrix.xcode }}
+      run: sudo xcode-select -s /Applications/Xcode_${{ matrix.xcode }}.app
+      
+    - name: Install dependencies
+      run: make ci-pod-install
+      
+    - name: Run tvOS unit tests
+      run: make unit-test-tvos
+      
+    - name: Upload tvOS test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: tvos-test-results
+        path: build/reports/tvosUnitResults.xcresult
+        
+  lint:
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+      
+    - name: Install dependencies
+      run: make ci-pod-install
+      
+    - name: Run SwiftLint
+      run: make lint
+
