@@ -148,25 +148,28 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Check CocoaPods Token
+      id: check_token
       run: |
         if [ -z "${{ secrets.COCOAPODS_TRUNK_TOKEN }}" ]; then
+          echo "HAS_TOKEN=false" >> $GITHUB_ENV
           echo "⚠️  COCOAPODS_TRUNK_TOKEN secret not configured"
           echo "   Skipping CocoaPods publishing"
           echo "   To enable: Add COCOAPODS_TRUNK_TOKEN to GitHub Secrets"
-          exit 0
+        else
+          echo "HAS_TOKEN=true" >> $GITHUB_ENV
+          echo "✅ CocoaPods token found"
         fi
-        echo "✅ CocoaPods token found"
         
     - name: Install CocoaPods
-      if: secrets.COCOAPODS_TRUNK_TOKEN != ''
+      if: env.HAS_TOKEN == 'true'
       run: gem install cocoapods
       
     - name: Validate Podspec
-      if: secrets.COCOAPODS_TRUNK_TOKEN != ''
+      if: env.HAS_TOKEN == 'true'
       run: pod spec lint AEPContentAnalytics.podspec --allow-warnings
       
     - name: Publish to CocoaPods
-      if: secrets.COCOAPODS_TRUNK_TOKEN != ''
+      if: env.HAS_TOKEN == 'true'
       env:
         COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
       run: |

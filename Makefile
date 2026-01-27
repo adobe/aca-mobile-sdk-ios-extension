@@ -1,7 +1,7 @@
 export EXTENSION_NAME = AEPContentAnalytics
 PROJECT_NAME = $(EXTENSION_NAME)
 SCHEME_NAME_XCFRAMEWORK = AEPContentAnalyticsXCF
-TEST_APP_IOS_SCHEME = AEPContentAnalyticsDemo
+TEST_APP_IOS_SCHEME = ContentAnalyticsDemoApp
 
 CURR_DIR := ${CURDIR}
 IOS_SIMULATOR_ARCHIVE_PATH = $(CURR_DIR)/build/ios_simulator.xcarchive/Products/Library/Frameworks/
@@ -15,15 +15,15 @@ TVOS_ARCHIVE_DSYM_PATH = $(CURR_DIR)/build/tvos.xcarchive/dSYMs/
 
 # CI variables - using values with defaults
 IOS_DEVICE_NAME ?= iPhone 16
-IOS_VERSION ?= 
+IOS_VERSION ?= 18.5
 ifeq ($(strip $(IOS_VERSION)),)
-    IOS_DESTINATION = "platform=iOS Simulator,name=$(IOS_DEVICE_NAME)"
+	IOS_DESTINATION = "platform=iOS Simulator,name=$(IOS_DEVICE_NAME)"
 else
-    IOS_DESTINATION = "platform=iOS Simulator,name=$(IOS_DEVICE_NAME),OS=$(IOS_VERSION)"
+	IOS_DESTINATION = "platform=iOS Simulator,name=$(IOS_DEVICE_NAME),OS=$(IOS_VERSION)"
 endif
 
 TVOS_DEVICE_NAME ?= Apple TV
-TVOS_VERSION ?=
+TVOS_VERSION ?= 18.1
 ifeq ($(strip $(TVOS_VERSION)),)
 	TVOS_DESTINATION = "platform=tvOS Simulator,name=$(TVOS_DEVICE_NAME)"
 else
