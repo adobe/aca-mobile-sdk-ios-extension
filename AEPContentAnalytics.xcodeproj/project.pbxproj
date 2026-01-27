@@ -89,7 +89,6 @@
 		B3EFDB962F28202E00087A14 /* TestAssertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB5B2F28202E00087A14 /* TestAssertions.swift */; };
 		B3EFDB972F28202E00087A14 /* ContentAnalyticsEndToEndTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB552F28202E00087A14 /* ContentAnalyticsEndToEndTests.swift */; };
 		B3EFDB982F28202E00087A14 /* ContentAnalyticsStateManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB772F28202E00087A14 /* ContentAnalyticsStateManagerTests.swift */; };
-		B3EFDB992F28202E00087A14 /* TestableExtensionRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB652F28202E00087A14 /* TestableExtensionRuntime.swift */; };
 		B3EFDB9A2F28202E00087A14 /* ContentAnalyticsOrchestratorTestBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB592F28202E00087A14 /* ContentAnalyticsOrchestratorTestBase.swift */; };
 		D61DC138482C4C32E03766F0 /* Pods_ContentAnalyticsDemoApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695341EA2CD9DB0A37215BF0 /* Pods_ContentAnalyticsDemoApp.framework */; };
 /* End PBXBuildFile section */
@@ -185,7 +184,6 @@
 		B3EFDB602F28202E00087A14 /* IntegrationTestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTestHelpers.swift; sourceTree = "<group>"; };
 		B3EFDB612F28202E00087A14 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B3EFDB632F28202E00087A14 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		B3EFDB652F28202E00087A14 /* TestableExtensionRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestableExtensionRuntime.swift; sourceTree = "<group>"; };
 		B3EFDB672F28202E00087A14 /* ContentAnalyticsBatchCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAnalyticsBatchCoordinatorTests.swift; sourceTree = "<group>"; };
 		B3EFDB682F28202E00087A14 /* ContentAnalyticsConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAnalyticsConfigurationTests.swift; sourceTree = "<group>"; };
 		B3EFDB692F28202E00087A14 /* ContentAnalyticsConfigurationValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAnalyticsConfigurationValidationTests.swift; sourceTree = "<group>"; };
@@ -634,7 +632,6 @@
 		B3EFDB662F28202E00087A14 /* TestHelpers */ = {
 			isa = PBXGroup;
 			children = (
-				B3EFDB652F28202E00087A14 /* TestableExtensionRuntime.swift */,
 			);
 			path = TestHelpers;
 			sourceTree = "<group>";
@@ -1032,7 +1029,6 @@
 				B3EFDB962F28202E00087A14 /* TestAssertions.swift in Sources */,
 				B3EFDB972F28202E00087A14 /* ContentAnalyticsEndToEndTests.swift in Sources */,
 				B3EFDB982F28202E00087A14 /* ContentAnalyticsStateManagerTests.swift in Sources */,
-				B3EFDB992F28202E00087A14 /* TestableExtensionRuntime.swift in Sources */,
 				B3EFDB9A2F28202E00087A14 /* ContentAnalyticsOrchestratorTestBase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

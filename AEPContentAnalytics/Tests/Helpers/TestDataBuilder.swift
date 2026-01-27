@@ -10,15 +10,15 @@
  governing permissions and limitations under the License.
  */
 
-import Foundation
 @testable import AEPContentAnalytics
+import Foundation
 
 /// Builder pattern for creating test data structures
 /// Provides consistent, reusable test data across test suite
 enum TestDataBuilder {
-    
+
     // MARK: - ContentItem Builders
-    
+
     /// Creates an array of test ContentItems
     /// - Parameters:
     ///   - count: Number of items to create
@@ -36,7 +36,7 @@ enum TestDataBuilder {
             return ContentItem(value: value, styles: styles)
         }
     }
-    
+
     /// Creates a single ContentItem with specific properties
     /// - Parameters:
     ///   - value: Content value
@@ -53,9 +53,9 @@ enum TestDataBuilder {
             styles: styles ?? buildDefaultStyles(for: type)
         )
     }
-    
+
     // MARK: - ExperienceDefinition Builders
-    
+
     /// Creates a test ExperienceDefinition
     /// - Parameters:
     ///   - experienceId: Unique experience ID
@@ -74,7 +74,7 @@ enum TestDataBuilder {
         let assetURLs = (0..<assetCount).map { "https://example.com/asset\($0).jpg" }
         let texts = buildContentItems(count: textCount, prefix: "text", type: .text)
         let ctas = ctaCount > 0 ? buildContentItems(count: ctaCount, prefix: "cta", type: .cta) : nil
-        
+
         return ExperienceDefinition(
             experienceId: experienceId,
             assets: assetURLs,
@@ -83,7 +83,7 @@ enum TestDataBuilder {
             sentToFeaturization: sentToFeaturization
         )
     }
-    
+
     /// Creates a custom ExperienceDefinition with specific content
     /// - Parameters:
     ///   - experienceId: Unique experience ID
@@ -107,9 +107,9 @@ enum TestDataBuilder {
             sentToFeaturization: sentToFeaturization
         )
     }
-    
+
     // MARK: - BatchingConfiguration Builders
-    
+
     /// Creates a test BatchingConfiguration
     /// - Parameters:
     ///   - maxBatchSize: Maximum batch size
@@ -127,9 +127,9 @@ enum TestDataBuilder {
             maxWaitTime: maxWaitTime
         )
     }
-    
+
     // MARK: - ContentAnalyticsConfiguration Builders
-    
+
     /// Creates a test ContentAnalyticsConfiguration
     /// - Parameters:
     ///   - batchingEnabled: Whether batching is enabled
@@ -156,9 +156,9 @@ enum TestDataBuilder {
         config.trackExperiences = trackExperiences
         return config
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Builds a content value based on type and index
     private static func buildContentValue(
         prefix: String,
@@ -174,7 +174,7 @@ enum TestDataBuilder {
             return "\(prefix.capitalized) CTA \(index)"
         }
     }
-    
+
     /// Builds default styles for a content type
     private static func buildDefaultStyles(for type: ContentItemType) -> [String: Any] {
         switch type {
@@ -194,4 +194,3 @@ enum ContentItemType {
     case text
     case cta
 }
-

@@ -10,10 +10,10 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
 @testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
+import XCTest
 
 /// Base class for orchestrator unit tests with common setup/teardown
 ///
@@ -38,28 +38,28 @@ import AEPServices
 /// }
 /// ```
 class ContentAnalyticsOrchestratorTestBase: XCTestCase {
-    
+
     // MARK: - Test Properties (Available in Subclasses)
-    
+
     var mockStateManager: ContentAnalyticsStateManager!
     var mockBatchCoordinator: MockBatchCoordinator!
     var mockEventDispatcher: OrchestratorMockEventDispatcher!
     var mockPrivacyValidator: MockPrivacyValidator!
     var mockXDMBuilder: OrchestratorMockXDMEventBuilder!
     var orchestrator: ContentAnalyticsOrchestrator!
-    
+
     // MARK: - Setup & Teardown
-    
+
     override func setUp() {
         super.setUp()
-        
+
         // Create all mocks
         mockStateManager = ContentAnalyticsStateManager()
         mockBatchCoordinator = MockBatchCoordinator()
         mockEventDispatcher = OrchestratorMockEventDispatcher()
         mockPrivacyValidator = MockPrivacyValidator()
         mockXDMBuilder = OrchestratorMockXDMEventBuilder()
-        
+
         // Configure state manager with permissive configuration (allows all tracking)
         var config = ContentAnalyticsConfiguration()
         config.batchingEnabled = false // Default to immediate dispatch for faster tests
@@ -68,16 +68,16 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         config.excludedAssetUrlsRegexp = nil
         config.excludedExperienceLocationsRegexp = nil
         mockStateManager.updateConfiguration(config)
-        
+
         // IMPORTANT: Wait for async configuration update to complete
         // StateManager.updateConfiguration() uses async dispatch, so we need to ensure
         // the configuration is actually set before tests run. This prevents race conditions
         // where tests try to process events before configuration is available.
         waitForConfiguration()
-        
+
         // Privacy validator allows tracking by default
         mockPrivacyValidator.shouldTrack = true
-        
+
         // Create orchestrator with mocked dependencies
         orchestrator = ContentAnalyticsOrchestrator(
             state: mockStateManager,
@@ -88,13 +88,13 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
             batchCoordinator: mockBatchCoordinator
         )
     }
-    
+
     override func tearDown() {
         // Reset mocks
         mockBatchCoordinator.reset()
         mockPrivacyValidator.reset()
         mockEventDispatcher.reset()
-        
+
         // Cleanup
         orchestrator = nil
         mockXDMBuilder = nil
@@ -102,12 +102,12 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         mockEventDispatcher = nil
         mockBatchCoordinator = nil
         mockStateManager = nil
-        
+
         super.tearDown()
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Updates configuration with batching enabled
     func enableBatching(maxBatchSize: Int = 10, flushInterval: TimeInterval = 5.0) {
         var config = ContentAnalyticsConfiguration()
@@ -121,7 +121,7 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         mockStateManager.updateConfiguration(config)
         waitForConfiguration() // Ensure config is set before returning
     }
-    
+
     /// Updates configuration with batching disabled
     func disableBatching() {
         var config = ContentAnalyticsConfiguration()
@@ -133,26 +133,26 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         mockStateManager.updateConfiguration(config)
         waitForConfiguration() // Ensure config is set before returning
     }
-    
+
     /// Blocks tracking via privacy validator
     func blockTracking() {
         mockPrivacyValidator.shouldTrack = false
     }
-    
+
     /// Allows tracking via privacy validator
     func allowTracking() {
         mockPrivacyValidator.shouldTrack = true
     }
-    
+
     // MARK: - Private Helpers
-    
+
     /// Waits for async configuration update to complete
     /// This prevents race conditions where configuration isn't set yet when tests run
     private func waitForConfiguration() {
         // Poll until configuration is set (with timeout)
         let startTime = Date()
         let timeout: TimeInterval = 1.0
-        
+
         while mockStateManager.getCurrentConfiguration() == nil {
             if Date().timeIntervalSince(startTime) > timeout {
                 XCTFail("Configuration not set after \(timeout)s timeout")
@@ -163,4 +163,3 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         }
     }
 }
-

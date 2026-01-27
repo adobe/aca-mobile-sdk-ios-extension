@@ -32,6 +32,10 @@ def lib_main
     pod 'AEPServices'
 end
 
+def test_utils
+    pod 'AEPTestUtils', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :tag => 'testutils-5.6.0'
+end
+
 def app_main
     lib_main
     pod 'AEPEdge'
@@ -47,6 +51,7 @@ end
 
 target 'AEPContentAnalyticsTests' do
   lib_main
+  test_utils
 end
 
 target 'ContentAnalyticsDemoApp' do

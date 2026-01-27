@@ -83,8 +83,7 @@ class DirectHitProcessor: HitProcessing {
     /// - Crash recovery: Event not in memory, accumulate from disk
     func processHit(entity: DataEntity, completion: @escaping (Bool) -> Void) {
         guard let eventData = decodeEvent(from: entity) else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "Failed to decode event | ID: \(entity.uniqueIdentifier)")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Failed to decode event | ID: \(entity.uniqueIdentifier)")
             completion(true)
             return
         }
@@ -97,8 +96,7 @@ class DirectHitProcessor: HitProcessing {
 
             if !alreadyAccumulated {
                 self.accumulatedEvents.append(eventData.event)
-                Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                         "Recovered \(self.type) event from disk | ID: \(eventId)")
+                Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Recovered \(self.type) event from disk | ID: \(eventId)")
             }
         }
 
@@ -109,7 +107,7 @@ class DirectHitProcessor: HitProcessing {
 
     /// Add event to in-memory batch (also persisted to disk separately for crash recovery)
     func accumulateEvent(_ event: Event) {
-        queue.async { [weak self] in
+        queue.sync { [weak self] in
             self?.accumulatedEvents.append(event)
         }
     }
@@ -127,8 +125,7 @@ class DirectHitProcessor: HitProcessing {
             let events = self.accumulatedEvents
             self.accumulatedEvents.removeAll()
 
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "Processing \(events.count) \(self.type) events from batch")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Processing \(events.count) \(self.type) events from batch")
 
             self.processingCallback?(events)
         }

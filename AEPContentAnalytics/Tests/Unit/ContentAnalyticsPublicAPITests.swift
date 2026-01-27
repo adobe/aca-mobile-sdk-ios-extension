@@ -10,10 +10,10 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
+@testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
-@testable import AEPContentAnalytics
+import XCTest
 
 /// Tests for ContentAnalytics public API methods
 /// 
@@ -30,9 +30,9 @@ import AEPServices
 /// REFACTORED: Now uses ContentAnalyticsTestBase and test utilities
 class ContentAnalyticsPublicAPITests: ContentAnalyticsTestBase {
     // ✅ mockRuntime and contentAnalytics available from base class
-    
+
     // MARK: - Experience Registration Tests
-    
+
     func testRegisterExperience_ReturnsExperienceId() {
         // Given
         let assets = [
@@ -46,86 +46,86 @@ class ContentAnalyticsPublicAPITests: ContentAnalyticsTestBase {
             ContentItem(value: "Get Started", styles: ["enabled": true])
         ]
         let location = "homepage-hero"
-        
+
         // When
         let experienceId = ContentAnalytics.registerExperience(
             assets: assets,
             texts: texts,
             ctas: ctas
         )
-        
+
         // Then - Should generate a valid experience ID
         XCTAssertFalse(experienceId.isEmpty, "Experience ID should not be empty")
         XCTAssertGreaterThan(experienceId.count, 10, "Experience ID should be a substantial hash")
     }
-    
+
     func testRegisterExperience_ConsistentIdGeneration() {
         // Given - Same content should generate same ID (deterministic hashing)
         let assets = [ContentItem(value: "https://example.com/image.jpg", styles: [:])]
         let texts = [ContentItem(value: "Test", styles: [:])]
         let location = "test-location"
-        
+
         // When - Register same experience twice
         let id1 = ContentAnalytics.registerExperience(
             assets: assets,
             texts: texts,
             ctas: nil
         )
-        
+
         clearDispatchedEvents() // Clear between calls
-        
+
         let id2 = ContentAnalytics.registerExperience(
             assets: assets,
             texts: texts,
             ctas: nil
         )
-        
+
         // Then - Should generate identical IDs
         XCTAssertEqual(id1, id2, "Same content should generate same experience ID (deterministic)")
     }
-    
+
     func testRegisterExperience_DifferentContentDifferentIds() {
         // Given - Different content should generate different IDs
         let assets1 = [ContentItem(value: "https://example.com/image1.jpg", styles: [:])]
         let assets2 = [ContentItem(value: "https://example.com/image2.jpg", styles: [:])]
         let texts = [ContentItem(value: "Test", styles: [:])]
         let location = "test-location"
-        
+
         // When - Register two different experiences
         let id1 = ContentAnalytics.registerExperience(
             assets: assets1,
             texts: texts,
             ctas: nil
         )
-        
+
         let id2 = ContentAnalytics.registerExperience(
             assets: assets2,
             texts: texts,
             ctas: nil
         )
-        
+
         // Then - Should generate different IDs
         XCTAssertNotEqual(id1, id2, "Different content should generate different experience IDs")
     }
-    
+
     func testRegisterExperience_LocationNotInHash() {
         // Given - Same content, different locations
         let assets = [ContentItem(value: "https://example.com/image.jpg", styles: [:])]
         let texts = [ContentItem(value: "Test", styles: [:])]
-        
+
         // When - Register same experience in different locations
         let id1 = ContentAnalytics.registerExperience(
             assets: assets,
             texts: texts,
             ctas: nil
         )
-        
+
         let id2 = ContentAnalytics.registerExperience(
             assets: assets,
             texts: texts,
             ctas: nil
         )
-        
+
         // Then - Location should NOT affect experience ID (same content = same ID)
         XCTAssertEqual(id1, id2, "Location should not affect experience ID generation")
     }

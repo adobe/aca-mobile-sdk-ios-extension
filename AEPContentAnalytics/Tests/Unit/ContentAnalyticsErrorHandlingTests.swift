@@ -10,10 +10,10 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
+@testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
-@testable import AEPContentAnalytics
+import XCTest
 
 /// Tests error handling for invalid event data.
 /// Validates that events with missing/invalid required fields are dropped.
@@ -21,13 +21,13 @@ import AEPServices
 /// NOTE: Edge case data (Unicode, long strings, concurrency, high volume) will be tested
 /// in integration tests where we can verify end-to-end behavior.
 class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
-    
+
     private func wait(timeout: TimeInterval = 0.2) {
         Thread.sleep(forTimeInterval: timeout)
     }
-    
+
     // MARK: - Invalid Event Data (Unit Testable)
-    
+
     func testMissingAssetURL_EventDropped() {
         // Given - Event without required assetURL
         let event = Event(
@@ -39,15 +39,15 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
                 "assetLocation": "test"
             ]
         )
-        
+
         // When
         orchestrator.processAssetEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 0, "Event without assetURL should be dropped")
     }
-    
+
     func testMissingExperienceId_EventDropped() {
         // Given - Event without required experienceId
         let event = Event(
@@ -59,15 +59,15 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
                 "experienceLocation": "test"
             ]
         )
-        
+
         // When
         orchestrator.processExperienceEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.experienceEvents.count, 0, "Event without experienceId should be dropped")
     }
-    
+
     func testMissingInteractionType_EventDropped() {
         // Given - Event without required interactionType
         let event = Event(
@@ -79,15 +79,15 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
                 "assetLocation": "test"
             ]
         )
-        
+
         // When
         orchestrator.processAssetEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 0, "Event without interactionType should be dropped")
     }
-    
+
     func testInvalidInteractionType_EventDropped() {
         // Given - Event with invalid interactionType
         let event = Event(
@@ -99,15 +99,15 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
                 "interactionType": "invalid_type"
             ]
         )
-        
+
         // When
         orchestrator.processAssetEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 0, "Event with invalid interactionType should be dropped")
     }
-    
+
     func testNilEventData_EventDropped() {
         // Given - Event with nil data
         let event = Event(
@@ -116,15 +116,15 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
             source: EventSource.requestContent,
             data: nil
         )
-        
+
         // When
         orchestrator.processAssetEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 0, "Event with nil data should be dropped")
     }
-    
+
     func testEmptyEventData_EventDropped() {
         // Given - Event with empty data
         let event = Event(
@@ -133,15 +133,15 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
             source: EventSource.requestContent,
             data: [:]
         )
-        
+
         // When
         orchestrator.processAssetEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 0, "Event with empty data should be dropped")
     }
-    
+
     func testWrongTypeForURL_EventDropped() {
         // Given - Event with wrong type for assetURL
         let event = Event(
@@ -153,11 +153,11 @@ class ContentAnalyticsErrorHandlingTests: ContentAnalyticsOrchestratorTestBase {
                 "interactionType": "view"
             ]
         )
-        
+
         // When
         orchestrator.processAssetEvent(event) { _ in }
         wait()
-        
+
         // Then
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 0, "Event with wrong type for assetURL should be dropped")
     }

@@ -7,7 +7,40 @@
 		<key>AEPContentAnalytics.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>11</integer>
+			<integer>0</integer>
+		</dict>
+		<key>AEPContentAnalyticsTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>AEPContentAnalyticsXCF.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>12</integer>
+		</dict>
+		<key>ContentAnalyticsDemoApp.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>13</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>B30465C72F28F47E005784CA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B3EFD9142F281A9D00087A14</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B3EFD91F2F281A9D00087A14</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

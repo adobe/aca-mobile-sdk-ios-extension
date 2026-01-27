@@ -10,17 +10,17 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
+@testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
-@testable import AEPContentAnalytics
+import XCTest
 
 /// Tests for configuration behavioral changes (enable/disable flags).
 /// Config parsing and validation tested in ContentAnalyticsConfigurationValidationTests.
 class ContentAnalyticsConfigurationTests: ContentAnalyticsTestBase {
-    
+
     // MARK: - Helpers
-    
+
     private func sendConfig(_ config: [String: Any]) {
         let event = Event(
             name: "Configuration Response Content",
@@ -31,7 +31,7 @@ class ContentAnalyticsConfigurationTests: ContentAnalyticsTestBase {
         mockRuntime.simulateComingEvents(event)
         waitForAsync(timeout: 0.3)
     }
-    
+
     private func trackAsset(url: String = "https://example.com/image.jpg", location: String = "home") -> [Event] {
         let trackEvent = TestEventFactory.createAssetEvent(
             url: url,
@@ -42,17 +42,17 @@ class ContentAnalyticsConfigurationTests: ContentAnalyticsTestBase {
         waitForAsync(timeout: 0.2)
         return mockRuntime.dispatchedEvents.filter { $0.type == EventType.edge }
     }
-    
+
     // MARK: - Tests
-    
+
     func testTrackExperiencesDisabled_BlocksExperienceEvents() {
         let config = ["contentanalytics.trackExperiences": false]
-        
+
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
         sendConfig(config)
-        
+
         let initialCount = mockRuntime.dispatchedEvents.count
-        
+
         let experienceEvent = TestEventFactory.createExperienceEvent(
             id: "test-exp",
             location: "home",
@@ -60,9 +60,9 @@ class ContentAnalyticsConfigurationTests: ContentAnalyticsTestBase {
         )
         mockRuntime.simulateComingEvents(experienceEvent)
         waitForAsync(timeout: 0.2)
-        
+
         let finalCount = mockRuntime.dispatchedEvents.count
         XCTAssertEqual(finalCount, initialCount, "trackExperiences:false blocks experience events")
     }
-    
+
 }

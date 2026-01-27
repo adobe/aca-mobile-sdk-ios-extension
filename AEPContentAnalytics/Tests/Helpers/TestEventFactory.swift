@@ -10,16 +10,16 @@
  governing permissions and limitations under the License.
  */
 
-import Foundation
-import AEPCore
 @testable import AEPContentAnalytics
+import AEPCore
+import Foundation
 
 /// Centralized factory for creating test events
 /// Reduces code duplication and ensures consistent event structure across tests
 enum TestEventFactory {
-    
+
     // MARK: - Asset Events
-    
+
     /// Creates a test asset tracking event
     /// - Parameters:
     ///   - url: Asset URL
@@ -38,11 +38,11 @@ enum TestEventFactory {
             AssetTrackingEventPayload.OptionalFields.assetLocation: location,
             AssetTrackingEventPayload.RequiredFields.interactionType: interaction.stringValue
         ]
-        
+
         if let extras = extras {
             data[AssetTrackingEventPayload.OptionalFields.assetExtras] = extras
         }
-        
+
         return Event(
             name: ContentAnalyticsConstants.EventNames.TRACK_ASSET,
             type: ContentAnalyticsConstants.EventType.contentAnalytics,
@@ -50,9 +50,9 @@ enum TestEventFactory {
             data: data
         )
     }
-    
+
     // MARK: - Experience Events
-    
+
     /// Creates a test experience tracking event
     /// - Parameters:
     ///   - id: Experience ID
@@ -73,15 +73,15 @@ enum TestEventFactory {
             ExperienceTrackingEventPayload.OptionalFields.experienceLocation: location,
             ExperienceTrackingEventPayload.RequiredFields.interactionType: interaction.stringValue
         ]
-        
+
         if let assetURLs = assetURLs {
             data[ExperienceTrackingEventPayload.OptionalFields.assetURLs] = assetURLs
         }
-        
+
         if let extras = extras {
             data[ExperienceTrackingEventPayload.OptionalFields.experienceExtras] = extras
         }
-        
+
         return Event(
             name: ContentAnalyticsConstants.EventNames.TRACK_EXPERIENCE,
             type: ContentAnalyticsConstants.EventType.contentAnalytics,
@@ -89,9 +89,9 @@ enum TestEventFactory {
             data: data
         )
     }
-    
+
     // MARK: - Configuration Events
-    
+
     /// Creates a test configuration event
     /// - Parameters:
     ///   - enabled: Whether ContentAnalytics is enabled
@@ -115,7 +115,7 @@ enum TestEventFactory {
             "contentanalytics.excludedAssets": excludedAssets,
             "contentanalytics.shouldTrackExperience": shouldTrackExperience
         ]
-        
+
         return Event(
             name: "Configuration Response",
             type: EventType.configuration,
@@ -123,7 +123,7 @@ enum TestEventFactory {
             data: config
         )
     }
-    
+
     /// Creates a test privacy configuration event
     /// - Parameters:
     ///   - consent: Edge consent value (y/n/p)
@@ -134,7 +134,7 @@ enum TestEventFactory {
         globalPrivacy: String? = nil
     ) -> Event {
         var config: [String: Any] = [:]
-        
+
         if let consent = consent {
             config["consent.default"] = [
                 "consents": [
@@ -144,11 +144,11 @@ enum TestEventFactory {
                 ]
             ]
         }
-        
+
         if let globalPrivacy = globalPrivacy {
             config["global.privacy"] = globalPrivacy
         }
-        
+
         return Event(
             name: "Configuration Response",
             type: EventType.configuration,
@@ -156,9 +156,9 @@ enum TestEventFactory {
             data: config
         )
     }
-    
+
     // MARK: - Identity Events
-    
+
     /// Creates a test reset identities event
     /// - Returns: Configured reset identities event
     static func createResetIdentitiesEvent() -> Event {
@@ -169,9 +169,9 @@ enum TestEventFactory {
             data: nil
         )
     }
-    
+
     // MARK: - Invalid Event Helpers (for Validation Testing)
-    
+
     /// Creates an invalid asset event missing the required assetURL field
     static func createAssetEventMissingURL(
         location: String = "home",
@@ -188,7 +188,7 @@ enum TestEventFactory {
             ]
         )
     }
-    
+
     /// Creates an invalid asset event missing the required interactionType field
     static func createAssetEventMissingInteractionType(
         url: String = "https://example.com/image.jpg",
@@ -205,7 +205,7 @@ enum TestEventFactory {
             ]
         )
     }
-    
+
     /// Creates an invalid experience event missing the required experienceId field
     static func createExperienceEventMissingId(
         location: String = "detail",
@@ -222,7 +222,7 @@ enum TestEventFactory {
             ]
         )
     }
-    
+
     /// Creates an invalid experience event missing the required interactionType field
     static func createExperienceEventMissingInteractionType(
         id: String = "exp-123",
@@ -239,7 +239,7 @@ enum TestEventFactory {
             ]
         )
     }
-    
+
     /// Creates an event with empty data (for edge case testing)
     static func createAssetEventWithEmptyData() -> Event {
         return Event(
@@ -249,7 +249,7 @@ enum TestEventFactory {
             data: [:]
         )
     }
-    
+
     /// Creates an event with nil data (for edge case testing)
     static func createAssetEventWithNilData() -> Event {
         return Event(
@@ -259,9 +259,9 @@ enum TestEventFactory {
             data: nil
         )
     }
-    
+
     // MARK: - Edge Events (for testing EdgeEventDispatcher)
-    
+
     /// Creates an Edge event with XDM asset data (as dispatched by orchestrator)
     static func createEdgeAssetEvent(url: String = "https://example.com/asset.jpg") -> Event {
         return Event(
@@ -284,7 +284,7 @@ enum TestEventFactory {
             ]
         )
     }
-    
+
     /// Creates an Edge event with XDM experience data (as dispatched by orchestrator)
     static func createEdgeExperienceEvent(id: String = "exp-123") -> Event {
         return Event(
@@ -307,4 +307,3 @@ enum TestEventFactory {
         )
     }
 }
-

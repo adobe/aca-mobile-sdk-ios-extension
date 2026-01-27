@@ -10,10 +10,10 @@
  governing permissions and limitations under the License.
  */
 
-import Foundation
+@testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
-@testable import AEPContentAnalytics
+import Foundation
 
 // MARK: - CENTRALIZED TEST MOCKS
 //
@@ -39,12 +39,12 @@ class MockStateManager {
     var mockConfiguration: ContentAnalyticsConfiguration?
     var mockAssetMetrics: [String: [String: Any]] = [:]
     var mockExperienceMetrics: [String: [String: Any]] = [:]
-    
+
     // Track method calls
     var trackEngagementMetricsCalled = false
     var trackExperienceEngagementMetricsCalled = false
     var markDefinitionSentCalled = false
-    
+
     func reset() {
         isEnabled = true
         batchingEnabled = true
@@ -72,31 +72,31 @@ class MockBatchCoordinator: BatchCoordinating {
     var clearCalled = false
     var updateConfigurationCalled = false
     var configuration: BatchingConfiguration?
-    
+
     func addAssetEvent(_ event: Event) {
         assetEvents.append(event)
     }
-    
+
     func addExperienceEvent(_ event: Event) {
         experienceEvents.append(event)
     }
-    
+
     func flush() {
         flushCalled = true
         flushCallCount += 1
     }
-    
+
     func clear() {
         clearCalled = true
         assetEvents.removeAll()
         experienceEvents.removeAll()
     }
-    
+
     func updateConfiguration(_ config: BatchingConfiguration) {
         updateConfigurationCalled = true
         configuration = config
     }
-    
+
     func reset() {
         assetEvents.removeAll()
         experienceEvents.removeAll()
@@ -113,12 +113,12 @@ class MockBatchCoordinator: BatchCoordinating {
 class MockEventDispatcher {
     var dispatchedEvents: [Event] = []
     var dispatchCount = 0
-    
+
     func dispatch(event: Event) {
         dispatchedEvents.append(event)
         dispatchCount += 1
     }
-    
+
     func reset() {
         dispatchedEvents.removeAll()
         dispatchCount = 0
@@ -127,77 +127,17 @@ class MockEventDispatcher {
 
 // NOTE: MockXDMEventBuilder removed - tests use specific mocks (OrchestratorMock*, PersistentBatchMock*)
 
-// MARK: - Mock Network Service
-
-class MockNetworkService: Networking {
-    var mockResponseData: (data: Data?, response: HTTPURLResponse?, error: Error?)?
-    var lastRequest: NetworkRequest?
-    
-    func connectAsync(networkRequest: NetworkRequest, completionHandler: ((HttpConnection) -> Void)?) {
-        lastRequest = networkRequest
-        // HttpConnection is a struct - create it directly
-        let connection = HttpConnection(
-            data: mockResponseData?.data,
-            response: mockResponseData?.response,
-            error: mockResponseData?.error
-        )
-        completionHandler?(connection)
-    }
-    
-    /// Check if a request was made to a specific URL
-    func requestMade(to url: String) -> Bool {
-        return lastRequest?.url.absoluteString == url
-    }
-    
-    /// Convenience method for setting up mock responses with data
-    func mockResponse(url: String, statusCode: Int, data: Data?) {
-        let response = HTTPURLResponse(
-            url: URL(string: url)!,
-            statusCode: statusCode,
-            httpVersion: nil,
-            headerFields: nil
-        )
-        mockResponseData = (data: data, response: response, error: nil)
-    }
-    
-    /// Convenience method for setting up mock responses with error
-    func mockResponse(url: String, statusCode: Int? = nil, error: Error) {
-        let response: HTTPURLResponse?
-        if let code = statusCode {
-            response = HTTPURLResponse(
-                url: URL(string: url)!,
-                statusCode: code,
-                httpVersion: nil,
-                headerFields: nil
-            )
-        } else {
-            response = nil
-        }
-        mockResponseData = (data: nil, response: response, error: error)
-    }
-    
-    /// Convenience method for setting up mock errors
-    func mockError(url: String, error: Error) {
-        mockResponseData = (data: nil, response: nil, error: error)
-    }
-    
-    func reset() {
-        mockResponseData = nil
-        lastRequest = nil
-    }
-}
-
 // MARK: - Mock Privacy Validator
 
 class MockPrivacyValidator: PrivacyValidator {
     var shouldTrack = true
     var isDataCollectionAllowedCallCount = 0
-    
+
     func isDataCollectionAllowed() -> Bool {
         isDataCollectionAllowedCallCount += 1
         return shouldTrack
     }
-    
+
     func reset() {
         shouldTrack = true
         isDataCollectionAllowedCallCount = 0
@@ -215,7 +155,7 @@ class MockFeaturizationService: ExperienceFeaturizationServiceProtocol {
     var registerExperienceCalled = false
     var mockExistsResult: Result<Bool, Error> = .success(false)
     var mockRegisterResult: Result<Void, Error> = .success(())
-    
+
     func checkExperienceExists(
         experienceId: String,
         imsOrg: String,
@@ -225,7 +165,7 @@ class MockFeaturizationService: ExperienceFeaturizationServiceProtocol {
         checkExistsCalled = true
         completion(mockExistsResult)
     }
-    
+
     func registerExperience(
         experienceId: String,
         imsOrg: String,
@@ -236,7 +176,7 @@ class MockFeaturizationService: ExperienceFeaturizationServiceProtocol {
         registerExperienceCalled = true
         completion(mockRegisterResult)
     }
-    
+
     func reset() {
         checkExistsCalled = false
         registerExperienceCalled = false
@@ -256,10 +196,9 @@ enum TestError: Error {
 // NOTE: Subclass-based mocks removed due to protocol conformance issues
 // Tests that need specific behavior use the existing protocol-based mocks below
 
-
 class MockEdgeEventDispatcher: ContentAnalyticsEventDispatcher {
     var onDispatch: ((Event) -> Void)?
-    
+
     func dispatch(event: Event) {
         onDispatch?(event)
     }
@@ -267,7 +206,7 @@ class MockEdgeEventDispatcher: ContentAnalyticsEventDispatcher {
 
 class PersistentBatchMockPrivacyValidator {
     var shouldAllowEvent = true
-    
+
     func isEventAllowed(_ event: Event) -> Bool {
         return shouldAllowEvent
     }
@@ -287,7 +226,7 @@ class HitProcessorMockFeaturizationService: ExperienceFeaturizationServiceProtoc
     var checkResponses: [String: Result<Bool, Error>] = [:]
     var registerResponses: [String: Result<Void, Error>] = [:]
     var registrationCallCount: [String: Int] = [:]
-    
+
     func checkExperienceExists(experienceId: String, imsOrg: String, datastreamId: String, completion: @escaping (Result<Bool, Error>) -> Void) {
         if let response = checkResponses[experienceId] {
             completion(response)
@@ -295,7 +234,7 @@ class HitProcessorMockFeaturizationService: ExperienceFeaturizationServiceProtoc
             completion(.success(false))
         }
     }
-    
+
     func registerExperience(experienceId: String, imsOrg: String, datastreamId: String, content: ExperienceContent, completion: @escaping (Result<Void, Error>) -> Void) {
         registrationCallCount[experienceId, default: 0] += 1
         if let response = registerResponses[experienceId] {
@@ -304,27 +243,27 @@ class HitProcessorMockFeaturizationService: ExperienceFeaturizationServiceProtoc
             completion(.success(()))
         }
     }
-    
+
     func mockCheckResponse(experienceId: String, exists: Bool) {
         checkResponses[experienceId] = .success(exists)
     }
-    
+
     func mockCheckError(experienceId: String, error: Error) {
         checkResponses[experienceId] = .failure(error)
     }
-    
+
     func mockRegisterSuccess(experienceId: String) {
         registerResponses[experienceId] = .success(())
     }
-    
+
     func mockRegisterError(experienceId: String, error: Error) {
         registerResponses[experienceId] = .failure(error)
     }
-    
+
     func registrationCalled(for experienceId: String) -> Bool {
         return (registrationCallCount[experienceId] ?? 0) > 0
     }
-    
+
     func reset() {
         checkResponses.removeAll()
         registerResponses.removeAll()
@@ -349,15 +288,15 @@ class OrchestratorMockBatchCoordinator {
     var assetEventAdded = false
     var experienceEventAdded = false
     var flushCalled = false
-    
+
     func addAssetEvent(_ event: Event) {
         assetEventAdded = true
     }
-    
+
     func addExperienceEvent(_ event: Event) {
         experienceEventAdded = true
     }
-    
+
     func flush() {
         flushCalled = true
     }
@@ -366,12 +305,12 @@ class OrchestratorMockBatchCoordinator {
 class OrchestratorMockEventDispatcher: ContentAnalyticsEventDispatcher {
     var eventDispatched = false
     var dispatchedEvents: [Event] = []
-    
+
     func dispatch(event: Event) {
         eventDispatched = true
         dispatchedEvents.append(event)
     }
-    
+
     func reset() {
         eventDispatched = false
         dispatchedEvents.removeAll()
@@ -383,20 +322,20 @@ class OrchestratorMockXDMEventBuilder: XDMEventBuilderProtocol {
     var createAssetXDMEventCallCount = 0
     var createExperienceDefinitionEventCalled = false
     var createExperienceXDMEventCalled = false
-    
+
     // AssetXDMBuilder protocol
     func createAssetXDMEvent(from assetKeys: [String], metrics: [String: [String: Any]], triggeringInteractionType: InteractionType) -> [String: Any] {
         createAssetXDMEventCalled = true
         createAssetXDMEventCallCount += 1
         return ["test": "xdm", "assetKeys": assetKeys.count]
     }
-    
+
     // ExperienceXDMBuilder protocol - Definition
     func createExperienceDefinitionEvent(experienceId: String, assetURLs: [String], textContent: [ContentItem], buttonContent: [ContentItem]?, experienceLocation: String) -> [String: Any] {
         createExperienceDefinitionEventCalled = true
         return ["test": "definition"]
     }
-    
+
     // ExperienceXDMBuilder protocol - Interaction
     func createExperienceXDMEvent(experienceId: String, interactionType: InteractionType, metrics: [String: Any], assetURLs: [String], experienceLocation: String?, state: ContentAnalyticsStateManager) -> [String: Any] {
         createExperienceXDMEventCalled = true
@@ -409,17 +348,17 @@ class OrchestratorMockXDMEventBuilder: XDMEventBuilderProtocol {
 class MockContentAnalyticsStateManager: ContentAnalyticsStateManager {
     var shouldTrackUrlResult = true
     var shouldExcludeExperienceResult = false
-    
+
     override func shouldTrackUrl(_ url: URL) -> Bool {
         return shouldTrackUrlResult
     }
 }
 
 class MockContentAnalyticsEventDispatcher: ContentAnalyticsEventDispatcher {
-    
+
     var dispatchCalled = false
     var dispatchedEvents: [Event] = []
-    
+
     func dispatch(event: Event) {
         dispatchCalled = true
         dispatchedEvents.append(event)
@@ -427,16 +366,16 @@ class MockContentAnalyticsEventDispatcher: ContentAnalyticsEventDispatcher {
 }
 
 class MockXDMEventBuilder: XDMEventBuilderProtocol {
-    
+
     var createXDMEventCalled = false
     var createExperienceXDMEventCalled = false
-    
+
     // AssetXDMBuilder protocol
     func createAssetXDMEvent(from assetKeys: [String], metrics: [String: [String: Any]], triggeringInteractionType: InteractionType) -> [String: Any] {
         createXDMEventCalled = true
         return ["test": "asset-xdm", "assetKeys": assetKeys.count]
     }
-    
+
     // ExperienceXDMBuilder protocol
     func createExperienceXDMEvent(
         experienceId: String,

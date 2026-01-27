@@ -10,21 +10,21 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
 @testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
+import XCTest
 
 /// Tests for orchestrator event validation and lifecycle.
 /// Configuration changes tested in ContentAnalyticsOrchestratorConfigurationTests.
 final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestratorTestBase {
-    
+
     // MARK: - Asset Event Validation Tests
-    
+
     func testAssetEvent_MissingAssetURL_RejectedWithError() {
         // Given - Asset event without REQUIRED assetURL
         let invalidEvent = TestEventFactory.createAssetEventMissingURL()
-        
+
         // When - Process invalid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processAssetEvent(invalidEvent) { result in
@@ -32,7 +32,7 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             if case .failure(let error) = result {
                 let errorMessage = error.localizedDescription
                 XCTAssertTrue(
-                    errorMessage.contains("required") || 
+                    errorMessage.contains("required") ||
                     errorMessage.contains("Missing") ||
                     errorMessage.contains("assetURL"),
                     "Should indicate missing required field: \(errorMessage)"
@@ -42,17 +42,17 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify no events dispatched
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 0, "Invalid event should not be dispatched")
     }
-    
+
     func testAssetEvent_MissingInteractionType_RejectedWithError() {
         // Given - Asset event without REQUIRED interactionType
         let invalidEvent = TestEventFactory.createAssetEventMissingInteractionType()
-        
+
         // When - Process invalid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processAssetEvent(invalidEvent) { result in
@@ -64,13 +64,13 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify no dispatch
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 0)
     }
-    
+
     func testAssetEvent_WithoutOptionalLocation_StillValid() {
         // Given - Valid asset event WITHOUT optional assetLocation
         let validEvent = Event(
@@ -83,7 +83,7 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
                 // No assetLocation - but that's OK, it's optional!
             ]
         )
-        
+
         // When - Process valid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processAssetEvent(validEvent) { result in
@@ -95,13 +95,13 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify event was dispatched
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 1, "Valid event should be dispatched")
     }
-    
+
     func testAssetEvent_WithAllFields_Accepted() {
         // Given - Valid asset event with all fields (required + optional)
         let validEvent = TestEventFactory.createAssetEvent(
@@ -109,7 +109,7 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             location: "home",
             interaction: .view
         )
-        
+
         // When - Process valid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processAssetEvent(validEvent) { result in
@@ -121,17 +121,17 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify event was dispatched
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 1, "Valid event should be dispatched")
     }
-    
+
     func testAssetEvent_EmptyData_RejectedGracefully() {
         // Given - Event with empty data
         let emptyEvent = TestEventFactory.createAssetEventWithEmptyData()
-        
+
         // When - Process empty event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processAssetEvent(emptyEvent) { result in
@@ -143,17 +143,17 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify no dispatch
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 0)
     }
-    
+
     func testAssetEvent_NilData_RejectedGracefully() {
         // Given - Event with nil data
         let nilEvent = TestEventFactory.createAssetEventWithNilData()
-        
+
         // When - Process nil event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processAssetEvent(nilEvent) { result in
@@ -165,19 +165,19 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Should not crash, should not dispatch
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 0)
     }
-    
+
     // MARK: - Experience Event Validation Tests
-    
+
     func testExperienceEvent_MissingExperienceId_RejectedWithError() {
         // Given - Experience event without REQUIRED experienceId
         let invalidEvent = TestEventFactory.createExperienceEventMissingId()
-        
+
         // When - Process invalid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processExperienceEvent(invalidEvent) { result in
@@ -189,17 +189,17 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify no dispatch
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 0)
     }
-    
+
     func testExperienceEvent_MissingInteractionType_RejectedWithError() {
         // Given - Experience event without REQUIRED interactionType
         let invalidEvent = TestEventFactory.createExperienceEventMissingInteractionType()
-        
+
         // When - Process invalid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processExperienceEvent(invalidEvent) { result in
@@ -211,13 +211,13 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Verify no dispatch
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 0)
     }
-    
+
     func testExperienceEvent_WithoutOptionalLocation_StillValid() {
         // Given - Valid experience event WITHOUT optional experienceLocation
         let validEvent = Event(
@@ -230,7 +230,7 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
                 // No experienceLocation - but that's OK, it's optional!
             ]
         )
-        
+
         // When - Process valid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processExperienceEvent(validEvent) { result in
@@ -242,13 +242,13 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Should dispatch at least interaction event
         XCTAssertGreaterThan(mockEventDispatcher.dispatchedEvents.count, 0, "Valid event should be dispatched")
     }
-    
+
     func testExperienceEvent_WithAllFields_Accepted() {
         // Given - Valid experience event with all fields
         let validEvent = TestEventFactory.createExperienceEvent(
@@ -256,7 +256,7 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             location: "detail",
             interaction: .view
         )
-        
+
         // When - Process valid event
         let expectation = self.expectation(description: "Event processed")
         orchestrator.processExperienceEvent(validEvent) { result in
@@ -268,15 +268,15 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             }
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Should dispatch definition + interaction (or just interaction if already registered)
         XCTAssertGreaterThan(mockEventDispatcher.dispatchedEvents.count, 0, "Valid event should be dispatched")
     }
-    
+
     // MARK: - Experience Definition Lifecycle Tests
-    
+
     func testExperienceDefinition_SentOnce_NotRepeatedOnSubsequentInteractions() {
         // Given - First interaction with an experience
         let event1 = TestEventFactory.createExperienceEvent(
@@ -284,38 +284,38 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             location: "detail",
             interaction: .view
         )
-        
+
         // When - Process first interaction
         let expectation1 = self.expectation(description: "First interaction")
         orchestrator.processExperienceEvent(event1) { _ in
             expectation1.fulfill()
         }
         waitForExpectations(timeout: 1.0)
-        
+
         let initialDispatchCount = mockEventDispatcher.dispatchedEvents.count
-        
+
         // Should have dispatched definition + interaction
         XCTAssertGreaterThanOrEqual(initialDispatchCount, 1, "Should dispatch at least interaction event")
-        
+
         // Reset dispatcher to track only second interaction
         mockEventDispatcher.dispatchedEvents.removeAll()
-        
+
         // When - Second interaction with same experience
         let event2 = TestEventFactory.createExperienceEvent(
             id: "exp-once",
             location: "detail",
             interaction: .click
         )
-        
+
         let expectation2 = self.expectation(description: "Second interaction")
         orchestrator.processExperienceEvent(event2) { _ in
             expectation2.fulfill()
         }
         waitForExpectations(timeout: 1.0)
-        
+
         // Then - Should only send interaction event, not definition again
         let secondDispatchCount = mockEventDispatcher.dispatchedEvents.count
-        
+
         // Second interaction should dispatch fewer or equal events (no duplicate definition)
         XCTAssertLessThanOrEqual(
             secondDispatchCount,
@@ -323,13 +323,13 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
             "Subsequent interactions should not re-send definition"
         )
     }
-    
+
     // MARK: - Edge Case Tests
-    
+
     // NOTE: Privacy validation tests removed - ContentAnalytics follows "Send to Edge, Let Edge Filter" 
     // architecture where Edge extension handles privacy validation, not ContentAnalytics.
     // See ContentAnalyticsPrivacyTests.swift for privacy testing.
-    
+
     func testUnknownInteractionType_HandledGracefully() {
         // Given - Event with unknown interaction type (as string)
         let event = Event(
@@ -341,21 +341,21 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
                 AssetTrackingEventPayload.RequiredFields.interactionType: "unknown_type" // Invalid type
             ]
         )
-        
+
         // When - Process event with unknown type
         let expectation = self.expectation(description: "Event processed")
-        orchestrator.processAssetEvent(event) { result in
+        orchestrator.processAssetEvent(event) { _ in
             // Then - Should handle gracefully (either accept or reject, but not crash)
             // Both behaviors are valid: accept with unknown type OR reject as invalid
             expectation.fulfill()
         }
-        
+
         waitForExpectations(timeout: 1.0)
-        
+
         // Should not crash - main success criterion
         // Dispatch behavior is implementation-dependent
     }
-    
+
     func testMultipleEventsInQuickSuccession_AllProcessed() {
         // Given - Multiple valid events
         let events = (1...5).map { i in
@@ -365,11 +365,11 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
                 interaction: .view
             )
         }
-        
+
         // When - Process all events quickly
         let expectation = self.expectation(description: "All events processed")
         expectation.expectedFulfillmentCount = 5
-        
+
         for event in events {
             orchestrator.processAssetEvent(event) { result in
                 if case .success = result {
@@ -379,9 +379,9 @@ final class ContentAnalyticsOrchestratorBehaviorTests: ContentAnalyticsOrchestra
                 }
             }
         }
-        
+
         waitForExpectations(timeout: 2.0)
-        
+
         // Then - All events should be dispatched
         XCTAssertEqual(mockEventDispatcher.dispatchedEvents.count, 5, "All valid events should be dispatched")
     }

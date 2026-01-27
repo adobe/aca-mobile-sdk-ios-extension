@@ -10,31 +10,32 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
+@testable import AEPContentAnalytics
 import AEPCore
 import AEPServices
-@testable import AEPContentAnalytics
+import AEPTestUtils
+import XCTest
 
 // MARK: - Test Base Class
 
 /// Base test class with common setup and utilities
 /// Use this as your test superclass to get automatic setup/teardown and helper methods
 class ContentAnalyticsTestBase: XCTestCase {
-    
+
     // MARK: - Properties
-    
+
     var mockRuntime: TestableExtensionRuntime!
     var contentAnalytics: ContentAnalytics!
-    
+
     // MARK: - Setup/Teardown
-    
+
     override func setUp() {
         super.setUp()
         mockRuntime = TestableExtensionRuntime()
         contentAnalytics = ContentAnalytics(runtime: mockRuntime)
         contentAnalytics.onRegistered()
     }
-    
+
     override func tearDown() {
         mockRuntime?.resetDispatchedEventAndCreatedSharedStates()
         contentAnalytics?.onUnregistered()
@@ -42,9 +43,9 @@ class ContentAnalyticsTestBase: XCTestCase {
         mockRuntime = nil
         super.tearDown()
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// Wait for async operations with shorter timeout for tests
     func waitForAsync(timeout: TimeInterval = 0.5, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Async operation")
@@ -53,7 +54,7 @@ class ContentAnalyticsTestBase: XCTestCase {
         }
         wait(for: [exp], timeout: timeout + 0.5)
     }
-    
+
     /// Get the first dispatched event matching criteria
     func getFirstEvent(withName name: String? = nil, type: String? = nil) -> Event? {
         return mockRuntime.dispatchedEvents.first { event in
@@ -62,7 +63,7 @@ class ContentAnalyticsTestBase: XCTestCase {
             return true
         }
     }
-    
+
     /// Get all dispatched events matching criteria
     func getEvents(withName name: String? = nil, type: String? = nil) -> [Event] {
         return mockRuntime.dispatchedEvents.filter { event in
@@ -71,7 +72,7 @@ class ContentAnalyticsTestBase: XCTestCase {
             return true
         }
     }
-    
+
     /// Clear all dispatched events
     func clearDispatchedEvents() {
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -81,7 +82,7 @@ class ContentAnalyticsTestBase: XCTestCase {
 // MARK: - Event Assertions
 
 extension XCTestCase {
-    
+
     /// Assert that an event was dispatched with expected properties
     func assertEventDispatched(
         events: [Event],
@@ -98,16 +99,16 @@ extension XCTestCase {
             if let source = source, event.source != source { return false }
             return true
         }
-        
+
         XCTAssertFalse(matchingEvents.isEmpty,
                       "Expected event with name: \(name ?? "any"), type: \(type ?? "any") not found",
                       file: file, line: line)
-        
+
         if let expectedData = expectedData, let event = matchingEvents.first {
             assertEventData(event: event, expectedData: expectedData, file: file, line: line)
         }
     }
-    
+
     /// Assert event data contains expected key-value pairs
     func assertEventData(
         event: Event,
@@ -119,17 +120,17 @@ extension XCTestCase {
             XCTFail("Event has no data", file: file, line: line)
             return
         }
-        
+
         for (key, expectedValue) in expectedData {
             guard let actualValue = actualData[key] else {
                 XCTFail("Event data missing key '\(key)'", file: file, line: line)
                 continue
             }
-            
+
             assertValuesEqual(actualValue, expectedValue, key: key, file: file, line: line)
         }
     }
-    
+
     /// Compare two values (handles various types)
     private func assertValuesEqual(
         _ actual: Any,
@@ -153,7 +154,7 @@ extension XCTestCase {
         }
         // Add more type comparisons as needed
     }
-    
+
     /// Assert no events were dispatched
     func assertNoEventsDispatched(
         _ events: [Event],
@@ -162,7 +163,7 @@ extension XCTestCase {
     ) {
         XCTAssertTrue(events.isEmpty, "Expected no events but found \(events.count)", file: file, line: line)
     }
-    
+
     /// Assert exact event count
     func assertEventCount(
         _ events: [Event],
@@ -179,7 +180,7 @@ extension XCTestCase {
 // MARK: - Configuration Helpers
 
 extension XCTestCase {
-    
+
     /// Create a standard test configuration
     func makeTestConfiguration(
         enabled: Bool = true,
@@ -194,7 +195,7 @@ extension XCTestCase {
             "contentanalytics.debugLogging": debugLogging
         ]
     }
-    
+
     /// Create configuration with Adobe Edge properties
     func makeEdgeConfiguration(
         orgId: String = "TEST_ORG@AdobeOrg",
@@ -217,37 +218,37 @@ struct TestEventBuilder {
     private var type: String = "test-type"
     private var source: String = EventSource.requestContent
     private var data: [String: Any] = [:]
-    
+
     func withName(_ name: String) -> TestEventBuilder {
         var builder = self
         builder.name = name
         return builder
     }
-    
+
     func withType(_ type: String) -> TestEventBuilder {
         var builder = self
         builder.type = type
         return builder
     }
-    
+
     func withSource(_ source: String) -> TestEventBuilder {
         var builder = self
         builder.source = source
         return builder
     }
-    
+
     func withData(_ data: [String: Any]) -> TestEventBuilder {
         var builder = self
         builder.data = data
         return builder
     }
-    
+
     func addData(key: String, value: Any) -> TestEventBuilder {
         var builder = self
         builder.data[key] = value
         return builder
     }
-    
+
     func build() -> Event {
         return Event(name: name, type: type, source: source, data: data)
     }
@@ -257,43 +258,43 @@ struct TestEventBuilder {
 struct AssetEventBuilder {
     private var assetURL: String = "https://example.com/image.jpg"
     private var interactionType: String = "view"
-    private var assetLocation: String? = nil
-    private var additionalData: [String: Any]? = nil
-    
+    private var assetLocation: String?
+    private var additionalData: [String: Any]?
+
     static func assetView(url: String = "https://example.com/image.jpg") -> AssetEventBuilder {
         return AssetEventBuilder(assetURL: url, interactionType: "view")
     }
-    
+
     static func assetClick(url: String = "https://example.com/image.jpg") -> AssetEventBuilder {
         return AssetEventBuilder(assetURL: url, interactionType: "click")
     }
-    
+
     func withLocation(_ location: String) -> AssetEventBuilder {
         var builder = self
         builder.assetLocation = location
         return builder
     }
-    
+
     func withAdditionalData(_ data: [String: Any]) -> AssetEventBuilder {
         var builder = self
         builder.additionalData = data
         return builder
     }
-    
+
     func build() -> Event {
         var data: [String: Any] = [
             "assetURL": assetURL,
             "interactionType": interactionType
         ]
-        
+
         if let location = assetLocation {
             data["assetLocation"] = location
         }
-        
+
         if let additional = additionalData {
             data["additionalData"] = additional
         }
-        
+
         return Event(
             name: ContentAnalyticsConstants.EventNames.TRACK_ASSET,
             type: ContentAnalyticsConstants.EventType.contentAnalytics,
@@ -308,33 +309,33 @@ struct ExperienceEventBuilder {
     private var experienceId: String = "exp-123"
     private var experienceLocation: String = "home"
     private var interactionType: String = "view"
-    private var additionalData: [String: Any]? = nil
-    
+    private var additionalData: [String: Any]?
+
     static func experienceView(id: String = "exp-123", location: String = "home") -> ExperienceEventBuilder {
         return ExperienceEventBuilder(experienceId: id, experienceLocation: location, interactionType: "view")
     }
-    
+
     static func experienceClick(id: String = "exp-123", location: String = "home") -> ExperienceEventBuilder {
         return ExperienceEventBuilder(experienceId: id, experienceLocation: location, interactionType: "click")
     }
-    
+
     func withAdditionalData(_ data: [String: Any]) -> ExperienceEventBuilder {
         var builder = self
         builder.additionalData = data
         return builder
     }
-    
+
     func build() -> Event {
         var data: [String: Any] = [
             "experienceId": experienceId,
             "experienceLocation": experienceLocation,
             "interactionType": interactionType
         ]
-        
+
         if let additional = additionalData {
             data["additionalData"] = additional
         }
-        
+
         return Event(
             name: ContentAnalyticsConstants.EventNames.TRACK_EXPERIENCE,
             type: ContentAnalyticsConstants.EventType.contentAnalytics,
@@ -347,7 +348,7 @@ struct ExperienceEventBuilder {
 // MARK: - Async Testing Helpers
 
 extension XCTestCase {
-    
+
     /// Wait for a condition to be true
     func waitFor(
         condition: @escaping () -> Bool,
@@ -358,7 +359,7 @@ extension XCTestCase {
     ) {
         let exp = expectation(description: description)
         let startTime = Date()
-        
+
         Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { timer in
             if condition() {
                 timer.invalidate()
@@ -369,10 +370,10 @@ extension XCTestCase {
                 exp.fulfill()
             }
         }
-        
+
         wait(for: [exp], timeout: timeout + 0.5)
     }
-    
+
     /// Wait for events to be dispatched
     func waitForEvents(
         count: Int,
@@ -394,7 +395,7 @@ extension XCTestCase {
 // MARK: - Thread Safety Testing Helpers
 
 extension XCTestCase {
-    
+
     /// Run a block concurrently and wait for completion
     func runConcurrently(
         iterations: Int,
@@ -403,13 +404,12 @@ extension XCTestCase {
         line: UInt = #line
     ) {
         let exp = expectation(description: "Concurrent operations")
-        
+
         DispatchQueue.global().async {
             DispatchQueue.concurrentPerform(iterations: iterations, execute: block)
             exp.fulfill()
         }
-        
+
         wait(for: [exp], timeout: 5.0)
     }
 }
-

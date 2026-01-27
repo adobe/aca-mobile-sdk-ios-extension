@@ -10,16 +10,16 @@
  governing permissions and limitations under the License.
  */
 
-import XCTest
-import AEPCore
 @testable import AEPContentAnalytics
+import AEPCore
+import XCTest
 
 /// Reusable assertion helpers for common test scenarios
 /// Reduces code duplication and provides consistent validation across tests
 enum TestAssertions {
-    
+
     // MARK: - Event Dispatch Assertions
-    
+
     /// Asserts that an Edge event was dispatched
     /// - Parameters:
     ///   - events: Array of dispatched events to search
@@ -33,7 +33,7 @@ enum TestAssertions {
         line: UInt = #line
     ) {
         let edgeEvents = events.filter { $0.type == EventType.edge }
-        
+
         if let expectedCount = expectedCount {
             XCTAssertEqual(
                 edgeEvents.count,
@@ -52,7 +52,7 @@ enum TestAssertions {
             )
         }
     }
-    
+
     /// Asserts that no Edge events were dispatched
     /// - Parameters:
     ///   - events: Array of dispatched events to search
@@ -72,9 +72,9 @@ enum TestAssertions {
             line: line
         )
     }
-    
+
     // MARK: - XDM Payload Assertions
-    
+
     /// Asserts that an XDM payload is valid for a given entity type
     /// - Parameters:
     ///   - payload: XDM payload dictionary
@@ -89,15 +89,15 @@ enum TestAssertions {
     ) {
         // Check required fields
         XCTAssertNotNil(payload["xdm"], "XDM payload should have 'xdm' field", file: file, line: line)
-        
+
         guard let xdm = payload["xdm"] as? [String: Any] else {
             XCTFail("XDM payload 'xdm' field should be a dictionary", file: file, line: line)
             return
         }
-        
+
         XCTAssertNotNil(xdm["eventType"], "XDM should have 'eventType'", file: file, line: line)
         XCTAssertNotNil(xdm["timestamp"], "XDM should have 'timestamp'", file: file, line: line)
-        
+
         // Check entity-specific fields
         if entityType == ContentAnalyticsConstants.EntityType.asset {
             assertAssetXDMPayloadValid(xdm, file: file, line: line)
@@ -105,7 +105,7 @@ enum TestAssertions {
             assertExperienceXDMPayloadValid(xdm, file: file, line: line)
         }
     }
-    
+
     /// Asserts that an asset XDM payload is valid
     private static func assertAssetXDMPayloadValid(
         _ xdm: [String: Any],
@@ -118,7 +118,7 @@ enum TestAssertions {
             XCTFail("Asset XDM should have contentComponent structure", file: file, line: line)
             return
         }
-        
+
         XCTAssertNotNil(
             contentComponent["assetURL"],
             "Asset XDM should have assetURL",
@@ -126,7 +126,7 @@ enum TestAssertions {
             line: line
         )
     }
-    
+
     /// Asserts that an experience XDM payload is valid
     private static func assertExperienceXDMPayloadValid(
         _ xdm: [String: Any],
@@ -139,7 +139,7 @@ enum TestAssertions {
             XCTFail("Experience XDM should have experienceComponent structure", file: file, line: line)
             return
         }
-        
+
         XCTAssertNotNil(
             experienceComponent["experienceId"],
             "Experience XDM should have experienceId",
@@ -147,9 +147,9 @@ enum TestAssertions {
             line: line
         )
     }
-    
+
     // MARK: - Metrics Assertions
-    
+
     /// Asserts that metrics were calculated correctly from events
     /// - Parameters:
     ///   - metrics: Calculated metrics
@@ -171,7 +171,7 @@ enum TestAssertions {
             file: file,
             line: line
         )
-        
+
         XCTAssertEqual(
             metrics.clickCount,
             expectedClicks,
@@ -180,7 +180,7 @@ enum TestAssertions {
             line: line
         )
     }
-    
+
     /// Asserts that event array has expected interaction counts
     /// - Parameters:
     ///   - events: Array of events
@@ -202,7 +202,7 @@ enum TestAssertions {
             file: file,
             line: line
         )
-        
+
         XCTAssertEqual(
             events.clickCount,
             expectedClicks,
@@ -211,9 +211,9 @@ enum TestAssertions {
             line: line
         )
     }
-    
+
     // MARK: - String Validation Assertions
-    
+
     /// Asserts that a string is not empty
     /// - Parameters:
     ///   - value: String to validate
@@ -234,7 +234,7 @@ enum TestAssertions {
             line: line
         )
     }
-    
+
     /// Asserts that a dictionary contains expected keys
     /// - Parameters:
     ///   - dictionary: Dictionary to validate
@@ -257,4 +257,3 @@ enum TestAssertions {
         }
     }
 }
-
