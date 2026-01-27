@@ -35,11 +35,8 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
         let experienceContent: [String: Any] = ["assets": assetData]
         let xdmEvent = createBaseXDMEvent(experienceContent: experienceContent)
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "📦 Created XDM event with \(assetData.count) assets")
-
         // TRACE: Full XDM payload
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER,
-                 "📦 Asset XDM Payload | AssetCount: \(assetData.count) | Data: \(xdmEvent)")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "Asset XDM Payload | AssetCount: \(assetData.count)")
 
         return xdmEvent
     }
@@ -176,8 +173,8 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
 
         // TRACE: Full experience interaction payload
         let hasExtras = metrics["experienceExtras"] != nil
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER,
-                 "📤 Experience INTERACTION Payload | ID: \(experienceId) | Type: \(interactionType.stringValue) | Assets: \(assetsData.count) | Extras: \(hasExtras) | Data: \(xdmEvent)")
+        let summary = "ID: \(experienceId) | Type: \(interactionType.stringValue) | Assets: \(assetsData.count)"
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "Experience INTERACTION Payload | \(summary)")
 
         return xdmEvent
     }

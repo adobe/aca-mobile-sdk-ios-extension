@@ -40,8 +40,7 @@ class EdgeEventDispatcher: ContentAnalyticsEventDispatcher {
     /// Dispatches an event to the AEP event hub.
     /// - Parameter event: The `Event` to be dispatched.
     func dispatch(event: Event) {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG,
-                 "→ Edge: \(event.name)")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "→ Edge: \(event.name)")
 
         runtime.dispatch(event: event)
     }

@@ -61,8 +61,7 @@ enum ContentAnalyticsUtilities {
 
         // Generate SHA-1 hash
         guard let data = contentString.data(using: .utf8) else {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION,
-                       "Failed to generate experience ID: unable to encode content")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Failed to generate experience ID: unable to encode content")
             return "mobile-\(Int(Date().timeIntervalSince1970))"
         }
 
@@ -90,13 +89,48 @@ enum ContentAnalyticsUtilities {
         }
 
         // Check if any key has different values
-        for (_, values) in keyValues {
-            if Set(values).count > 1 {
-                return true
-            }
+        for (_, values) in keyValues where Set(values).count > 1 {
+            return true
         }
 
         return false
+    }
+
+    /// Processes extras from multiple events, merging or creating "all" array on conflicts
+    /// - Parameters:
+    ///   - extrasArray: Array of extras dictionaries from events
+    ///   - entityId: Entity identifier for logging
+    ///   - extrasType: Type name for logging (e.g., "assetExtras")
+    /// - Returns: Merged extras or "all" array if conflicts detected
+    static func processExtras(
+        _ extrasArray: [[String: Any]],
+        for entityId: String,
+        type extrasType: String
+    ) -> [String: Any]? {
+        guard !extrasArray.isEmpty else { return nil }
+
+        // Single event - no conflicts
+        if extrasArray.count == 1 {
+            return extrasArray[0]
+        }
+
+        // Multiple events - merge and check for conflicts
+        var mergedExtras: [String: Any] = [:]
+        for extras in extrasArray {
+            mergedExtras.merge(extras) { _, new in new }
+        }
+
+        if hasConflictingExtras(extrasArray) {
+            // Conflicts detected - use "all" array only
+            Log.debug(
+                label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Detected conflicting \(extrasType) for \(entityId) - using 'all' array")
+            return ["all": extrasArray]
+        } else {
+            // No conflicts - use merged
+            Log.debug(
+                label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Merged \(extrasType) for \(entityId) | Events: \(extrasArray.count)")
+            return mergedExtras
+        }
     }
 }
 
@@ -117,4 +151,3 @@ private extension Data {
         return map { String(format: "%02hhx", $0) }.joined()
     }
 }
-

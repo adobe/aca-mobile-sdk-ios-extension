@@ -101,8 +101,7 @@ public class ContentAnalytics: NSObject, Extension {
             return
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LOG_TAG,
-                 "⚙️ Configuration response | Data: \(configurationData)")
+        Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "⚙️ Configuration response | Data: \(configurationData)")
 
         if let config = parseConfiguration(from: configurationData) {
             contentAnalyticsState.updateConfiguration(config)
@@ -127,8 +126,7 @@ public class ContentAnalytics: NSObject, Extension {
         // Update privacy validator cache when Hub or Consent shared states change
         if stateOwner == ContentAnalyticsConstants.ExternalExtensions.EVENT_HUB ||
            stateOwner == ContentAnalyticsConstants.ExternalExtensions.CONSENT {
-            Log.trace(label: ContentAnalyticsConstants.LOG_TAG,
-                     "Shared state changed for \(stateOwner) - updating privacy validator cache")
+            Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Shared state changed for \(stateOwner) - updating privacy validator cache")
             privacyValidator.updateSharedStateCache()
         }
     }
@@ -169,8 +167,7 @@ public class ContentAnalytics: NSObject, Extension {
     // MARK: - Event Handler
 
     private func handleContentAnalyticsEvent(event: Event) {
-        Log.trace(label: ContentAnalyticsConstants.LOG_TAG,
-                 "Received event | Name: \(event.name) | ID: \(event.id) | Type: \(event.type) | Data: \(event.data ?? [:])")
+        Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Received event | Name: \(event.name) | ID: \(event.id) | Type: \(event.type) | Data: \(event.data ?? [:])")
 
         // Route to appropriate handler (consent checked by Edge extension)
         if event.isExperienceEvent {
@@ -213,13 +210,11 @@ public class ContentAnalytics: NSObject, Extension {
     private func handleApplicationPauseOrClose(event: Event) {
         // Only flush if batching is enabled (otherwise events are sent immediately)
         guard contentAnalyticsState.batchingEnabled else {
-            Log.trace(label: ContentAnalyticsConstants.LOG_TAG,
-                     "App backgrounded but batching disabled - no flush needed")
+            Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "App backgrounded but batching disabled - no flush needed")
             return
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG,
-                 "App backgrounded - flushing pending batch")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "App backgrounded - flushing pending batch")
 
         contentAnalyticsOrchestrator.sendPendingEvents()
 
@@ -281,7 +276,8 @@ public class ContentAnalytics: NSObject, Extension {
             return nil
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Config parsed | trackExperiences: \(config.trackExperiences) | edgeDomain: \(config.edgeDomain ?? "nil") | org: \(config.experienceCloudOrgId ?? "nil") | datastream: \(config.datastreamId ?? "nil")")
+        let configSummary = "trackExperiences: \(config.trackExperiences) | edgeDomain: \(config.edgeDomain ?? "nil") | org: \(config.experienceCloudOrgId ?? "nil")"
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Config parsed | \(configSummary) | datastream: \(config.datastreamId ?? "nil")")
 
         return config
     }

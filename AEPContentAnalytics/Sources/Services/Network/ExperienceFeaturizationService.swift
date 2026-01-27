@@ -117,9 +117,6 @@ class ExperienceFeaturizationService: ExperienceFeaturizationServiceProtocol {
             return
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "🔍 Checking experience | ID: \(experienceId)")
-
         let request = NetworkRequest(url: url, httpMethod: .get, connectTimeout: 5.0, readTimeout: 10.0)
 
         networkService.connectAsync(networkRequest: request) { [weak self] connection in
@@ -143,9 +140,6 @@ class ExperienceFeaturizationService: ExperienceFeaturizationServiceProtocol {
             return
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "📝 Registering experience | ID: \(experienceId)")
-
         let request = NetworkRequest(
             url: url,
             httpMethod: .post,
@@ -167,42 +161,32 @@ class ExperienceFeaturizationService: ExperienceFeaturizationServiceProtocol {
         experienceId: String,
         completion: @escaping (Result<Bool, Error>) -> Void
     ) {
-        let responseBody = extractResponseBody(from: connection)
-
         guard let response = connection.response else {
             let error = connection.error ?? NSError(domain: "FeaturizationService", code: -1)
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "⚠️ Network error | ID: \(experienceId) | Error: \(error.localizedDescription)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Network error | ID: \(experienceId) | Error: \(error.localizedDescription)")
             completion(.failure(FeaturizationError.networkError(error)))
             return
         }
-
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "🔍 Response | Status: \(response.statusCode) | Body: \(responseBody)")
 
         switch response.statusCode {
         case 200:
             guard let data = connection.data,
                   let checkResponse = try? JSONDecoder().decode(CheckResponse.self, from: data) else {
-                Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                           "⚠️ Invalid response | ID: \(experienceId) | Body: \(responseBody)")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Invalid response | ID: \(experienceId)")
                 completion(.failure(FeaturizationError.invalidResponse))
                 return
             }
 
             let exists = !checkResponse.sendContent
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "✅ Check succeeded | ID: \(experienceId) | sendContent: \(checkResponse.sendContent) | Exists: \(exists)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Check succeeded | ID: \(experienceId) | Exists: \(exists)")
             completion(.success(exists))
 
         case 404:
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "✅ Not featurized (404) | ID: \(experienceId)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Not featurized (404) | ID: \(experienceId)")
             completion(.success(false))
 
         default:
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "⚠️ HTTP error: \(response.statusCode) | ID: \(experienceId) | Body: \(responseBody)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "HTTP error: \(response.statusCode) | ID: \(experienceId)")
             completion(.failure(FeaturizationError.httpError(response.statusCode)))
         }
     }
@@ -212,26 +196,18 @@ class ExperienceFeaturizationService: ExperienceFeaturizationServiceProtocol {
         experienceId: String,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
-        let responseBody = extractResponseBody(from: connection)
-
         guard let response = connection.response else {
             let error = connection.error ?? NSError(domain: "FeaturizationService", code: -1)
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "⚠️ Network error | ID: \(experienceId) | Error: \(error.localizedDescription)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Network error | ID: \(experienceId) | Error: \(error.localizedDescription)")
             completion(.failure(FeaturizationError.networkError(error)))
             return
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "📝 Register response | Status: \(response.statusCode) | Body: \(responseBody)")
-
         if (200...299).contains(response.statusCode) {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "✅ Registered | ID: \(experienceId) | Status: \(response.statusCode)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Registered | ID: \(experienceId) | Status: \(response.statusCode)")
             completion(.success(()))
         } else {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "⚠️ Failed to register | Status: \(response.statusCode) | ID: \(experienceId) | Body: \(responseBody)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Failed to register | Status: \(response.statusCode) | ID: \(experienceId)")
             completion(.failure(FeaturizationError.httpError(response.statusCode)))
         }
     }

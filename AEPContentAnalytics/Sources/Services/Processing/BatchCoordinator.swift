@@ -116,8 +116,7 @@ class BatchCoordinator: BatchCoordinating {
         self.assetHitQueue.beginProcessing()
         self.experienceHitQueue.beginProcessing()
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                 "🔄 BatchCoordinator initialized - unified batching and persistence")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "BatchCoordinator initialized")
     }
 
     deinit {
@@ -175,8 +174,7 @@ class BatchCoordinator: BatchCoordinating {
             self.assetHitProcessor.clear()
             self.experienceHitProcessor.clear()
 
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "Cleared \(assetCount) asset events and \(experienceCount) experience events without sending")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Cleared \(assetCount) asset events and \(experienceCount) experience events without sending")
         }
     }
 
@@ -209,8 +207,7 @@ class BatchCoordinator: BatchCoordinating {
                 self?.experienceProcessingCallback(events)
             }
 
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "✅ Orchestrator callbacks configured")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Orchestrator callbacks configured")
         }
     }
 
@@ -227,8 +224,7 @@ class BatchCoordinator: BatchCoordinating {
         // 3. Track count (batching trigger)
         assetEventCount += 1
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                 "Asset event queued: \(assetEventCount)/\(configuration.maxBatchSize)")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Asset event queued: \(assetEventCount)")
 
         // 4. Start timer if needed
         if firstTrackingTime == nil {
@@ -251,8 +247,7 @@ class BatchCoordinator: BatchCoordinating {
         // 3. Track count (batching trigger)
         experienceEventCount += 1
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                 "Experience event queued: \(experienceEventCount)/\(configuration.maxBatchSize)")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Experience event queued: \(experienceEventCount)")
 
         // 4. Start timer if needed
         if firstTrackingTime == nil {
@@ -314,8 +309,7 @@ class BatchCoordinator: BatchCoordinating {
     private func performFlush() {
         guard assetEventCount > 0 || experienceEventCount > 0 else { return }
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                 "Batch flush: \(assetEventCount) assets, \(experienceEventCount) experiences")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Batch flush: \(assetEventCount) assets, \(experienceEventCount) experiences")
 
         // Reset batch state
         assetEventCount = 0
@@ -351,8 +345,7 @@ class BatchCoordinator: BatchCoordinating {
         let wrapper = EventWrapper(event: event, type: type)
 
         guard let data = try? JSONEncoder().encode(wrapper) else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "Failed to encode event | Type: \(type)")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Failed to encode event | Type: \(type)")
             return
         }
 
@@ -363,11 +356,9 @@ class BatchCoordinator: BatchCoordinating {
         )
 
         if queue.queue(entity: entity) {
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "Event persisted | Type: \(type) | ID: \(event.id.uuidString)")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Event persisted | Type: \(type) | ID: \(event.id.uuidString)")
         } else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR,
-                     "Failed to queue event | Type: \(type)")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Failed to queue event | Type: \(type)")
         }
     }
 

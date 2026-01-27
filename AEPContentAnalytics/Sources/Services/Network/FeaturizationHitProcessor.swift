@@ -50,14 +50,12 @@ class FeaturizationHitProcessor: HitProcessing {
         // Decode the hit from the entity
         guard let hit = decodeFeaturizationHit(from: entity) else {
             // Unrecoverable error - can't decode hit
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Failed to decode featurization hit | Entity: \(entity.uniqueIdentifier) - dropping")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Failed to decode featurization hit | Entity: \(entity.uniqueIdentifier)")
             completion(true) // Remove from queue
             return
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "🔄 Processing featurization hit | ExperienceID: \(hit.experienceId) | Attempt: \(hit.attemptCount + 1)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processing featurization hit | ExperienceID: \(hit.experienceId)")
 
         // Check if experience already exists
         checkAndRegisterExperience(hit: hit, entityId: entity.uniqueIdentifier, completion: completion)
@@ -76,8 +74,7 @@ class FeaturizationHitProcessor: HitProcessing {
         // Validate datastreamId is present (required field)
         let datastreamId = hit.content.datastreamId
         guard !datastreamId.isEmpty else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Cannot check experience - datastreamId is empty | ID: \(hit.experienceId)")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Cannot check experience - datastreamId is empty | ID: \(hit.experienceId)")
             completion(false) // Don't retry - configuration error
             return
         }
@@ -97,14 +94,12 @@ class FeaturizationHitProcessor: HitProcessing {
             case .success(let exists):
                 if exists {
                     // Experience already featurized - success!
-                    Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                             "✅ Experience already featurized | ID: \(hit.experienceId)")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience already featurized | ID: \(hit.experienceId)")
                     self.entityRetryIntervalMapping[entityId] = nil
                     completion(true) // Remove from queue
                 } else {
                     // Experience not featurized - register it
-                    Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                             "📝 Experience not featurized, registering | ID: \(hit.experienceId)")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience not featurized, registering | ID: \(hit.experienceId)")
                     self.registerExperience(hit: hit, entityId: entityId, completion: completion)
                 }
 
@@ -120,8 +115,7 @@ class FeaturizationHitProcessor: HitProcessing {
         // Validate datastreamId is present (required field)
         let datastreamId = hit.content.datastreamId
         guard !datastreamId.isEmpty else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Cannot register experience - datastreamId is empty | ID: \(hit.experienceId)")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Cannot register experience - datastreamId is empty | ID: \(hit.experienceId)")
             completion(false) // Don't retry - configuration error
             return
         }
@@ -140,8 +134,7 @@ class FeaturizationHitProcessor: HitProcessing {
             switch result {
             case .success:
                 // Registration successful
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                         "✅ Experience registered successfully | ID: \(hit.experienceId)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience registered successfully | ID: \(hit.experienceId)")
                 self.entityRetryIntervalMapping[entityId] = nil
                 completion(true) // Remove from queue
 
@@ -197,8 +190,7 @@ class FeaturizationHitProcessor: HitProcessing {
 
             // Special case: 404 on check means experience not featurized yet - register it
             if statusCode == 404 && operation == .check {
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                         "📝 404 response - registering experience | ID: \(hit.experienceId)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "404 response - registering experience | ID: \(hit.experienceId)")
                 registerExperience(hit: hit, entityId: entityId, completion: completion)
                 return
             }
@@ -229,11 +221,10 @@ class FeaturizationHitProcessor: HitProcessing {
         let retryInterval = calculateRetryInterval(attemptCount: hit.attemptCount)
 
         if let statusCode = statusCode {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "⚠️ Recoverable error \(operation.logContext) (\(statusCode)) | ID: \(hit.experienceId) | Retry in: \(retryInterval)s")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "⚠️ Recoverable error \(operation.logContext) (\(statusCode)) | ID: \(hit.experienceId) | Retry in: \(retryInterval)s")
         } else if let error = error {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "⚠️ Network error \(operation.logContext) | ID: \(hit.experienceId) | Error: \(error.localizedDescription) | Retry in: \(retryInterval)s")
+            let errorMsg = "\(operation.logContext) | ID: \(hit.experienceId) | Error: \(error.localizedDescription)"
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "⚠️ Network error \(errorMsg) | Retry in: \(retryInterval)s")
         }
 
         entityRetryIntervalMapping[entityId] = retryInterval
@@ -248,8 +239,7 @@ class FeaturizationHitProcessor: HitProcessing {
         operation: FeaturizationOperation,
         completion: @escaping (Bool) -> Void
     ) {
-        Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "❌ Unrecoverable HTTP error \(operation.logContext) (\(statusCode)) | ID: \(experienceId) - dropping")
+        Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Unrecoverable HTTP error \(operation.logContext) (\(statusCode)) | ID: \(experienceId)")
         entityRetryIntervalMapping[entityId] = nil
         completion(true) // Remove from queue
     }

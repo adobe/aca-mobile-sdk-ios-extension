@@ -77,8 +77,7 @@ class StatePrivacyValidator: PrivacyValidator {
 
         isCacheInitialized = true
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                 "🔄 Shared state cache updated - Consent registered: \(cachedIsConsentRegistered)")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔄 Shared state cache updated - Consent registered: \(cachedIsConsentRegistered)")
     }
 
     func isDataCollectionAllowed() -> Bool {
@@ -89,66 +88,54 @@ class StatePrivacyValidator: PrivacyValidator {
                 isCacheInitialized = true
             }
 
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                     "🔒 Starting privacy validation (using cached states)")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔒 Starting privacy validation (using cached states)")
 
             // Check if Hub shared state is available
             guard cachedHubData != nil else {
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                         "⏸️ No Hub shared state available, blocking data collection (waiting for SDK init)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "⏸️ No Hub shared state available, blocking data collection (waiting for SDK init)")
                 return false
             }
 
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                     "🔍 Consent extension registered: \(cachedIsConsentRegistered)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔍 Consent extension registered: \(cachedIsConsentRegistered)")
 
             if cachedIsConsentRegistered {
                 // Consent is registered - check its shared state
                 guard let consentData = cachedConsentData else {
-                    Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                             "⏸️ Consent extension registered but no shared state yet - assuming pending, blocking data collection")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "⏸️ Consent extension registered but no shared state yet - assuming pending, blocking data collection")
                     return false
                 }
 
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                         "🔍 Consent shared state data: \(consentData)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔍 Consent shared state data: \(consentData)")
 
                 // Consent shared state exists - use that value
                 if let consents = consentData["consents"] as? [String: Any],
                    let collect = consents["collect"] as? [String: Any],
                    let val = collect["val"] as? String {
 
-                    Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                             "🔍 Consent collect value: \(val)")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔍 Consent collect value: \(val)")
 
                     switch val.lowercased() {
                     case "y", "yes":
-                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                                 "✅ Data collection allowed - consent granted")
+                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "✅ Data collection allowed - consent granted")
                         return true
                     case "n", "no":
-                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                                 "🚫 Data collection blocked - consent denied")
+                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🚫 Data collection blocked - consent denied")
                         return false
                     case "p", "pending":
-                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                                 "⏸️ Data collection blocked - consent pending")
+                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "⏸️ Data collection blocked - consent pending")
                         return false
                     default:
-                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                                 "⏸️ Data collection blocked - unrecognized consent value: \(val)")
+                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "⏸️ Data collection blocked - unrecognized consent value: \(val)")
                         return false
                     }
                 }
 
                 // Consent data malformed - block
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                         "⏸️ Data collection blocked - malformed consent data")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "⏸️ Data collection blocked - malformed consent data")
                 return false
             } else {
                 // Consent is not registered - assume yes
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR,
-                         "✅ Data collection allowed - Consent extension not registered, assuming yes")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "✅ Data collection allowed - Consent extension not registered, assuming yes")
                 return true
             }
         }

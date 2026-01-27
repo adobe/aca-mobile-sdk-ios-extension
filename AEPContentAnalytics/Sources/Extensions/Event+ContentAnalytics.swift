@@ -12,6 +12,14 @@ governing permissions and limitations under the License.
 
 import AEPCore
 
+/// Container for experience definition data extracted from events
+public struct ExperienceDefinitionData {
+    public let experienceId: String
+    public let assets: [String]
+    public let texts: [ContentItem]
+    public let ctas: [ContentItem]?
+}
+
 /// Event extensions for ContentAnalytics convenience accessors
 public extension Event {
 
@@ -113,14 +121,19 @@ public extension Event {
     }
 
     /// Extract experience definition data from event (returns nil if incomplete)
-    func extractExperienceDefinitionData() -> (experienceId: String, assets: [String], texts: [ContentItem], ctas: [ContentItem]?)? {
+    public func extractExperienceDefinitionData() -> ExperienceDefinitionData? {
         guard let experienceId = experienceId,
               let assets = experienceAssetURLs,
               let texts = experienceTextContent else {
             return nil
         }
 
-        return (experienceId, assets, texts, experienceButtonContent)
+        return ExperienceDefinitionData(
+            experienceId: experienceId,
+            assets: assets,
+            texts: texts,
+            ctas: experienceButtonContent
+        )
     }
 
     // MARK: - Key Generation

@@ -73,8 +73,7 @@ class ContentAnalyticsOrchestrator {
         self.featurizationHitQueue = featurizationHitQueue
         self.batchCoordinator = batchCoordinator
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Orchestrator initialized with batch coordinator")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Orchestrator initialized")
     }
 
     // MARK: - Public Methods
@@ -91,19 +90,16 @@ class ContentAnalyticsOrchestrator {
     func initializeFeaturizationQueueIfNeeded(queue: PersistentHitQueue?) {
         // Only set queue if it doesn't exist yet
         guard featurizationHitQueue == nil else {
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "Featurization queue already initialized - skipping")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization queue already initialized - skipping")
             return
         }
 
         featurizationHitQueue = queue
 
         if featurizationHitQueue != nil {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "✅ Featurization queue initialized successfully")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization queue initialized")
         } else {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "Featurization queue not yet available (waiting for valid configuration)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization queue not yet available")
         }
     }
 
@@ -119,8 +115,7 @@ class ContentAnalyticsOrchestrator {
         // Validate action is view or click
         if let action = event.interactionType,
            action != InteractionType.view && action != InteractionType.click {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "Asset event has invalid action: \(action)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Asset event has invalid action: \(action)")
             completion(.failure(.validationError("Invalid action type: \(action)")))
             return
         }
@@ -147,8 +142,7 @@ class ContentAnalyticsOrchestrator {
         // Validate action is definition, view, or click
         if let action = event.interactionType,
            action != InteractionType.definition && action != InteractionType.view && action != InteractionType.click {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "Experience event has invalid action: \(action)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience event has invalid action: \(action)")
             completion(.failure(.validationError("Invalid action type: \(action)")))
             return
         }
@@ -203,7 +197,6 @@ class ContentAnalyticsOrchestrator {
         sendImmediately: (Event) -> Void
     ) {
         guard let id = identifier(event) else { return }
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processing validated \(entityType) event: \(id)")
 
         // Check if entity should be excluded
         if shouldExclude(event) {
@@ -218,14 +211,12 @@ class ContentAnalyticsOrchestrator {
         if state.batchingEnabled {
             // Add to batch processor for later sending
             addToBatch(event)
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Added \(entityType) event to batch")
         } else {
             // Send immediately when batching is disabled
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "⚡ Batching disabled - sending \(entityType) event immediately")
             sendImmediately(event)
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Successfully processed \(entityType) event")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processed \(entityType) event: \(id)")
     }
 
     // MARK: - Event Processing Helpers
@@ -298,8 +289,7 @@ class ContentAnalyticsOrchestrator {
             ctas: definitionData.ctas
         )
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Stored experience definition: \(definitionData.experienceId) with \(definitionData.assets.count) assets")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Stored experience definition: \(definitionData.experienceId) with \(definitionData.assets.count) assets")
     }
 
     /// Adds an asset event to the batch coordinator
@@ -363,8 +353,7 @@ class ContentAnalyticsOrchestrator {
         let isNowDisabled = !config.batchingEnabled
 
         if wasBatchingEnabled && isNowDisabled {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "🔄 Batching disabled - flushing pending events before configuration update")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Batching disabled - flushing pending events")
             batchCoordinator?.flush()
         }
 
@@ -386,15 +375,14 @@ class ContentAnalyticsOrchestrator {
         keyExtractor: (Event) -> String?,
         processEvents: ([Event]) -> Void
     ) {
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "⚡ Sending \(entityType) event immediately (batching disabled)")
-
-        guard keyExtractor(event) != nil else {
+        guard let key = keyExtractor(event) else {
             Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Cannot send \(entityType) event - missing required fields")
             return
         }
 
         // Process as a single event (metrics will be calculated from events)
         processEvents([event])
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Sent \(entityType) event immediately: \(key)")
     }
 
     /// Sends a single asset event immediately without batching
@@ -411,13 +399,11 @@ class ContentAnalyticsOrchestrator {
 
     func handleAssetBatchFlush(requests events: [Event]) {
         guard !events.isEmpty else {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "handleAssetBatchFlush called with empty events array")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "handleAssetBatchFlush called with empty events array")
             return
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "handleAssetBatchFlush | Events: \(events.count)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "handleAssetBatchFlush | Events: \(events.count)")
 
         processAssetEvents(events)
     }
@@ -425,28 +411,24 @@ class ContentAnalyticsOrchestrator {
     func handleExperienceBatchFlush(requests events: [Event]) {
         guard !events.isEmpty else { return }
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "handleExperienceBatchFlush | Events: \(events.count)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "handleExperienceBatchFlush | Events: \(events.count)")
 
         processExperienceEvents(events)
     }
 
     /// Process asset events (single or batch) and dispatch to Edge Network
     private func processAssetEvents(_ assetEvents: [Event]) {
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Processing asset events | EventCount: \(assetEvents.count)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processing asset events | EventCount: \(assetEvents.count)")
 
         // Build typed metrics collection
         let (metricsCollection, interactionType) = buildAssetMetricsCollection(from: assetEvents)
 
         guard !metricsCollection.isEmpty else {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "No valid metrics to send - skipping")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "No valid metrics to send - skipping")
             return
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Built aggregated metrics | AssetCount: \(metricsCollection.count)")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Built aggregated metrics | AssetCount: \(metricsCollection.count)")
 
         // Send one Edge event per asset key (enables CJA filtering by assetID and location)
         for assetKey in metricsCollection.assetKeys {
@@ -463,8 +445,7 @@ class ContentAnalyticsOrchestrator {
 
     /// Process experience events, send definitions to featurization service, and dispatch interactions to Edge
     private func processExperienceEvents(_ experienceEvents: [Event]) {
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Processing experience events | EventCount: \(experienceEvents.count)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processing experience events | EventCount: \(experienceEvents.count)")
 
         // Group by experienceId to handle definitions and interactions separately
         let eventsByExperienceId = Dictionary(grouping: experienceEvents) { $0.experienceId ?? "" }
@@ -472,13 +453,11 @@ class ContentAnalyticsOrchestrator {
         for (experienceId, events) in eventsByExperienceId where !experienceId.isEmpty {
             // Send definition to featurization service if not already sent
             if !state.hasExperienceDefinitionBeenSent(for: experienceId) {
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                         "📤 Sending experience definition to featurization | ID: \(experienceId)")
                 sendExperienceDefinitionEvent(experienceId: experienceId, events: events)
                 state.markExperienceDefinitionAsSent(experienceId: experienceId)
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Sent experience definition | ID: \(experienceId)")
             } else {
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                         "⏭️ Skipping featurization - definition already sent | ID: \(experienceId)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Skipping featurization - already sent | ID: \(experienceId)")
             }
 
             // Only send view/click interactions to Edge (filter out definition events)
@@ -489,8 +468,7 @@ class ContentAnalyticsOrchestrator {
                 let (metricsCollection, interactionType) = buildExperienceMetricsCollection(from: interactionEvents)
 
                 guard !metricsCollection.isEmpty else {
-                    Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                               "No metrics found for experience: \(experienceId)")
+                    Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "No metrics found for experience: \(experienceId)")
                     continue
                 }
 
@@ -506,8 +484,7 @@ class ContentAnalyticsOrchestrator {
                     )
                 }
             } else {
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                         "Skipping Edge event for \(experienceId) - only definition, no interactions")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Skipping Edge event for \(experienceId) - only definition, no interactions")
             }
         }
 
@@ -516,128 +493,32 @@ class ContentAnalyticsOrchestrator {
 
     /// Queue experience definition to featurization service for ML training
     private func sendExperienceDefinitionEvent(experienceId: String, events: [Event]) {
-        // Check consent for direct HTTP calls (Edge Network events are validated by Edge extension, but featurization bypasses Edge)
-        guard privacyValidator.isDataCollectionAllowed() else {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Skipping featurization - consent denied (check privacy validator logs above for details)")
-            return
-        }
-
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "✅ Privacy check passed - proceeding with featurization")
-
-        guard let config = state.configuration else {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Skipping featurization - No configuration available")
-            return
-        }
-
-        guard let serviceUrl = config.getFeaturizationBaseUrl(),
-              !serviceUrl.isEmpty else {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Skipping featurization - Cannot determine featurization URL | edge.domain: \(config.edgeDomain ?? "nil") | region: \(config.region ?? "nil")")
-            return
-        }
-
-        guard let imsOrg = config.experienceCloudOrgId,
-              !imsOrg.isEmpty else {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Skipping featurization - IMS Org not configured | experienceCloud.org: \(config.experienceCloudOrgId ?? "nil")")
-            return
-        }
-
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "✅ Configuration valid | URL: \(serviceUrl) | Org: \(imsOrg)")
-
-        // Get definition from state (registerExperience() must be called first)
-        guard let definition = state.getExperienceDefinition(for: experienceId) else {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                       "❌ No definition found for experience: \(experienceId) - registerExperience() must be called first")
-            return
-        }
-
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "✅ Definition found | ID: \(experienceId) | Assets: \(definition.assets.count) | Texts: \(definition.texts.count)")
-
-        let assetURLs = definition.assets
-        let textContent = definition.texts
-        let buttonContent = definition.ctas
-
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Using stored definition for featurization: \(experienceId)")
-
-        // Convert to {value, style} format for featurization service
-        let imagesData = assetURLs.map { assetURL -> [String: Any] in
-            [
-                "value": assetURL,
-                "style": [:] as [String: Any]
-            ]
-        }
-
-        let textsData = textContent.map { $0.toDictionary() }
-        let ctasData: [[String: Any]]? = buttonContent?.isEmpty == false ? buttonContent?.map { $0.toDictionary() } : nil
-
-        let contentData = ContentData(
-            images: imagesData,
-            texts: textsData,
-            ctas: ctasData
-        )
-
-        // datastreamId is required - ensure it's present
-        guard let datastreamId = config.datastreamId, !datastreamId.isEmpty else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Cannot send experience to featurization - datastreamId not configured")
-            return
-        }
-
-        let content = ExperienceContent(
-            content: contentData,
-            orgId: imsOrg,
-            datastreamId: datastreamId,
-            experienceId: experienceId
-        )
-
-        let hit = FeaturizationHit(
+        // Validate prerequisites
+        guard let prerequisites = ContentAnalyticsFeaturizationHelper.validatePrerequisites(
             experienceId: experienceId,
-            imsOrg: imsOrg,
+            state: state,
+            privacyValidator: privacyValidator
+        ) else {
+            return
+        }
+
+        // Build content for featurization service
+        guard let content = ContentAnalyticsFeaturizationHelper.buildContent(
+            definition: prerequisites.definition,
+            config: prerequisites.config,
+            imsOrg: prerequisites.imsOrg,
+            experienceId: experienceId
+        ) else {
+            return
+        }
+
+        // Encode and queue the hit
+        ContentAnalyticsFeaturizationHelper.queueHit(
+            experienceId: experienceId,
+            imsOrg: prerequisites.imsOrg,
             content: content,
-            timestamp: Date(),
-            attemptCount: 0
+            queue: featurizationHitQueue
         )
-
-        guard let hitData = try? JSONEncoder().encode(hit) else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Failed to encode featurization hit | ExperienceID: \(experienceId)")
-            return
-        }
-
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "✅ Hit encoded | Size: \(hitData.count) bytes")
-
-        let dataEntity = DataEntity(
-            uniqueIdentifier: UUID().uuidString,
-            timestamp: Date(),
-            data: hitData
-        )
-
-        // Check if queue is available
-        guard let queue = featurizationHitQueue else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Featurization queue is nil - cannot queue hit | ID: \(experienceId)")
-            return
-        }
-
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "✅ Queue available | Attempting to queue hit...")
-
-        // Queue hit (persisted to disk and retried automatically)
-        if queue.queue(entity: dataEntity) {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "✅ Experience queued for featurization | ID: \(experienceId)")
-        } else {
-            Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "❌ Failed to queue experience (queue.queue() returned false) | ID: \(experienceId)")
-        }
     }
 
     /// Sends asset interaction event with aggregated metrics to Edge Network
@@ -671,23 +552,19 @@ class ContentAnalyticsOrchestrator {
         interactionType: InteractionType,
         xdmEventBuilder: XDMEventBuilderProtocol
     ) {
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Sending interaction event for experience: \(experienceId)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Sending interaction event for experience: \(experienceId)")
 
         let experienceLocation = !metrics.experienceSource.isEmpty ? metrics.experienceSource : nil
 
         if experienceLocation == nil {
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "No experienceLocation for: \(experienceId) (optional)")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "No experienceLocation for: \(experienceId) (optional)")
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Using aggregated metrics | Views: \(metrics.viewCount) | Clicks: \(metrics.clickCount)")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Using aggregated metrics | Views: \(metrics.viewCount) | Clicks: \(metrics.clickCount)")
 
         // Get attributed assets directly from metrics
         let assetURLs = metrics.attributedAssets
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Including \(assetURLs.count) attributed assets in experience XDM")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Including \(assetURLs.count) attributed assets in experience XDM")
 
         // Convert metrics to event data for XDM builder
         let aggregatedMetrics = metrics.toEventData()
@@ -709,8 +586,7 @@ class ContentAnalyticsOrchestrator {
 
         let viewCount = (aggregatedMetrics["viewCount"] as? NSNumber)?.intValue ?? 0
         let clickCount = (aggregatedMetrics["clickCount"] as? NSNumber)?.intValue ?? 0
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Successfully sent experience interaction via Edge | Views: \(viewCount) | Clicks: \(clickCount)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Successfully sent experience interaction via Edge | Views: \(viewCount) | Clicks: \(clickCount)")
     }
 
     // MARK: - Edge Network Dispatch
@@ -733,8 +609,7 @@ class ContentAnalyticsOrchestrator {
 
         eventDispatcher.dispatch(event: event)
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Dispatched \(eventType) event to Edge Network")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Dispatched \(eventType) event to Edge Network")
     }
 
     // MARK: - Helper Methods
@@ -749,41 +624,9 @@ class ContentAnalyticsOrchestrator {
             "datastreamIdOverride": datastreamId
         ]
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                 "Using datastream override: \(datastreamId)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Using datastream override: \(datastreamId)")
 
         return configOverride
-    }
-
-    private func processExtras(
-        _ extrasArray: [[String: Any]],
-        for entityId: String,
-        type extrasType: String
-    ) -> [String: Any]? {
-        guard !extrasArray.isEmpty else { return nil }
-
-        // Single event - no conflicts
-        if extrasArray.count == 1 {
-            return extrasArray[0]
-        }
-
-        // Multiple events - merge and check for conflicts
-        var mergedExtras: [String: Any] = [:]
-        for extras in extrasArray {
-            mergedExtras.merge(extras) { _, new in new }
-        }
-
-        if ContentAnalyticsUtilities.hasConflictingExtras(extrasArray) {
-            // Conflicts detected - use "all" array only
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "Detected conflicting \(extrasType) for \(entityId) - using 'all' array with \(extrasArray.count) entries")
-            return ["all": extrasArray]
-        } else {
-            // No conflicts - use merged
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                     "Merged \(extrasType) for \(entityId) | Events: \(extrasArray.count) | Fields: \(mergedExtras.count)")
-            return mergedExtras
-        }
     }
 
     // MARK: - Helper Methods for Metrics Calculation
@@ -816,7 +659,11 @@ class ContentAnalyticsOrchestrator {
 
             // Process extras
             let allExtras = groupedEvents.compactMap { $0.assetExtras }
-            let processedExtras = processExtras(allExtras, for: key, type: AssetTrackingEventPayload.OptionalFields.assetExtras)
+            let processedExtras = ContentAnalyticsUtilities.processExtras(
+                allExtras,
+                for: key,
+                type: AssetTrackingEventPayload.OptionalFields.assetExtras
+            )
 
             let metrics = AssetMetrics(
                 assetURL: assetURL,
@@ -853,7 +700,11 @@ class ContentAnalyticsOrchestrator {
 
             // Process extras
             let allExtras = groupedEvents.compactMap { $0.experienceExtras }
-            let processedExtras = processExtras(allExtras, for: key, type: ExperienceTrackingEventPayload.OptionalFields.experienceExtras)
+            let processedExtras = ContentAnalyticsUtilities.processExtras(
+                allExtras,
+                for: key,
+                type: ExperienceTrackingEventPayload.OptionalFields.experienceExtras
+            )
 
             // Get attributed assets from stored definition
             let assetURLs: [String]
@@ -861,8 +712,7 @@ class ContentAnalyticsOrchestrator {
                 assetURLs = definition.assets
             } else {
                 assetURLs = []
-                Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                           "No definition found for experience: \(experienceID) - may not be registered")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "No definition found for experience: \(experienceID) - may not be registered")
             }
 
             let metrics = ExperienceMetrics(
