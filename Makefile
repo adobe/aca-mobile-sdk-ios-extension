@@ -102,6 +102,9 @@ unit-test-ios:
 	@echo "######################################################################"
 	@echo "### Unit Testing iOS"
 	@echo "######################################################################"
+	@echo "Ensuring $(IOS_DEVICE_NAME) simulator (iOS $(IOS_VERSION)) is booted..."
+	@xcrun simctl boot "$(IOS_DEVICE_NAME)" 2>/dev/null || echo "Simulator already booted or boot failed (will try anyway)"
+	@sleep 3
 	rm -rf build/reports/iosUnitResults.xcresult
 	xcodebuild test -workspace $(PROJECT_NAME).xcworkspace -scheme "AEPContentAnalyticsTests" -destination $(IOS_DESTINATION) -derivedDataPath build/out -resultBundlePath build/reports/iosUnitResults.xcresult -enableCodeCoverage YES ADB_SKIP_LINT=YES
 
