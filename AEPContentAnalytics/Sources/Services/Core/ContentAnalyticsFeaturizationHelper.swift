@@ -82,8 +82,9 @@ enum ContentAnalyticsFeaturizationHelper {
         imsOrg: String,
         experienceId: String
     ) -> ExperienceContent? {
+        // Images: only include "value" (no empty style objects)
         let imagesData = definition.assets.map { assetURL -> [String: Any] in
-            ["value": assetURL, "style": [:] as [String: Any]]
+            ["value": assetURL]
         }
 
         let textsData = definition.texts.map { $0.toDictionary() }
