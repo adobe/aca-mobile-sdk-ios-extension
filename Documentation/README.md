@@ -35,7 +35,7 @@ Features:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/adobe/aca-mobile-sdk-ios-extension", from: "1.0.0")
+    .package(url: "https://github.com/adobe/aca-mobile-sdk-ios-extension", from: "5.0.0")
 ]
 ```
 

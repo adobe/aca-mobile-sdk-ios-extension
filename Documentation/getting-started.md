@@ -18,7 +18,7 @@ This guide will help you integrate the AEP Content Analytics extension into your
    ```
    https://github.com/adobe/aca-mobile-sdk-ios-extension
    ```
-3. Select version `1.0.0` or later
+3. Select version `5.0.0` or later
 4. Click **Add Package**
 
 ### CocoaPods
@@ -26,7 +26,7 @@ This guide will help you integrate the AEP Content Analytics extension into your
 Add to your `Podfile`:
 
 ```ruby
-pod 'AEPContentAnalytics', '~> 1.0'
+pod 'AEPContentAnalytics', '~> 5.0'
 ```
 
 Run:

@@ -212,7 +212,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
                 self?.experienceCallbackEvents.append(contentsOf: events)
             }
         )
-        _ = batchCoordinator.getBatchStatus() // Synchronization barrier
+        _ = batchCoordinator.getBatchStatus() // Ensure callbacks are set before proceeding
 
         // When - Add exactly 10 events (reaches threshold, triggers flush)
         for i in 0..<batchSize {
@@ -289,13 +289,26 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
             batchCoordinator.addAssetEvent(createAssetEvent(url: "https://example.com/asset\(i).jpg"))
         }
 
-        waitForAsync(timeout: 0.5)
-
         // Verify not flushed yet
         var status = batchCoordinator.getBatchStatus()
         XCTAssertEqual(status.assetCount, 8, "Should have 8 events before config update")
 
-        // When - Update to smaller batch size
+        // Set up expectation and callback BEFORE triggering flush
+        let expectation = XCTestExpectation(description: "Configuration update triggers flush")
+        batchCoordinator.setCallbacks(
+            assetCallback: { [weak self] events in
+                self?.assetCallbackInvoked = true
+                self?.assetCallbackEvents.append(contentsOf: events)
+                expectation.fulfill()
+            },
+            experienceCallback: { [weak self] events in
+                self?.experienceCallbackInvoked = true
+                self?.experienceCallbackEvents.append(contentsOf: events)
+            }
+        )
+        _ = batchCoordinator.getBatchStatus() // Ensure callbacks are set before proceeding
+        
+        // When - Update to smaller batch size (should trigger flush since 8 > 5)
         let newConfig = BatchingConfiguration(
             maxBatchSize: 5,
             flushInterval: 2.0,
@@ -303,10 +316,10 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         )
         batchCoordinator.updateConfiguration(newConfig)
 
-        // Wait for flush
-        waitForAsync(timeout: 1.5)
+        // Wait for flush callback
+        wait(for: [expectation], timeout: 10.0)
 
-        // Then - Should trigger flush since 8 > new threshold of 5
+        // Then - Should have flushed since 8 > new threshold of 5
         status = batchCoordinator.getBatchStatus()
         XCTAssertEqual(status.assetCount, 0, "Should flush when new batch size is smaller than current count")
         XCTAssertTrue(assetCallbackInvoked, "Callback should be invoked")
@@ -344,14 +357,27 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         for i in 0..<5 {
             batchCoordinator.addAssetEvent(createAssetEvent(url: "https://example.com/asset\(i).jpg"))
         }
-
-        waitForAsync(timeout: 0.5)
+        
+        // Set up expectation and callback BEFORE triggering flush
+        let expectation = XCTestExpectation(description: "Flush callback invoked")
+        batchCoordinator.setCallbacks(
+            assetCallback: { [weak self] events in
+                self?.assetCallbackInvoked = true
+                self?.assetCallbackEvents.append(contentsOf: events)
+                expectation.fulfill()
+            },
+            experienceCallback: { [weak self] events in
+                self?.experienceCallbackInvoked = true
+                self?.experienceCallbackEvents.append(contentsOf: events)
+            }
+        )
+        _ = batchCoordinator.getBatchStatus() // Ensure callbacks are set before proceeding
 
         // When - Manually flush
         batchCoordinator.flush()
 
-        // Wait for flush
-        waitForAsync(timeout: 1.0)
+        // Wait for flush callback
+        wait(for: [expectation], timeout: 10.0)
 
         // Then - All events should be dispatched
         let status = batchCoordinator.getBatchStatus()
@@ -449,7 +475,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
                 self?.experienceCallbackEvents.append(contentsOf: events)
             }
         )
-        _ = batchCoordinator.getBatchStatus() // Synchronization barrier
+        _ = batchCoordinator.getBatchStatus() // Ensure callbacks are set before proceeding
         
         // When - Add asset events (10 = threshold, triggers flush)
         for i in 0..<10 {
@@ -482,7 +508,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
                 expectation.fulfill()
             }
         )
-        _ = batchCoordinator.getBatchStatus() // Synchronization barrier
+        _ = batchCoordinator.getBatchStatus() // Ensure callbacks are set before proceeding
         
         // When - Add experience events (10 = threshold, triggers flush)
         for i in 0..<10 {
@@ -515,7 +541,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
                 experienceExpectation.fulfill()
             }
         )
-        _ = batchCoordinator.getBatchStatus() // Synchronization barrier
+        _ = batchCoordinator.getBatchStatus() // Ensure callbacks are set before proceeding
         
         // When - Add mixed events (5 assets + 5 experiences = 10 total = threshold)
         for i in 0..<5 {

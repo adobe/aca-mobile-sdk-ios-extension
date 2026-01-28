@@ -55,7 +55,7 @@ Alternatively, if your project has a `Package.swift` file, you can add AEPConten
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/adobe/aca-mobile-sdk-ios-extension.git", .upToNextMajor(from: "1.0.0"))
+    .package(url: "https://github.com/adobe/aca-mobile-sdk-ios-extension.git", .upToNextMajor(from: "5.0.0"))
 ],
 targets: [
     .target(name: "YourTarget",
@@ -106,15 +106,15 @@ make test
 - **[API Reference](Documentation/api-reference.md)** - Complete API documentation
 - **[Advanced Configuration](Documentation/advanced-configuration.md)** - Batching, privacy, performance
 - **[Troubleshooting](Documentation/troubleshooting.md)** - Common issues and solutions
-- **[Validation with Assurance](VALIDATION_WITH_ASSURANCE.md)** - How to validate tracking with Adobe Assurance
+- **[Crash Recovery](Documentation/crash-recovery.md)** - Persistent queuing and crash recovery
 
-## Sample App
+## Demo App
 
-A demo application is available in the `SampleApps` directory. See [SampleApps/README.md](SampleApps/README.md) for setup instructions.
+A demo application is available in the `ContentAnalyticsDemoApp` directory, integrated into the main workspace for easy testing and development.
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Contributions are welcome! Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details on our community standards, and follow standard GitHub flow for pull requests.
 
 ## Licensing
 

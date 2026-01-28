@@ -218,21 +218,26 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         // Monitor dispatched events
         let startCount = mockRuntime.dispatchedEvents.filter { $0.type == EventType.edge }.count
 
+        // Track how many times we've fulfilled the expectation
+        var fulfilledCount = 0
+
         // Poll for edge events (mockRuntime doesn't have callbacks)
         let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
             let edgeEvents = self.mockRuntime.dispatchedEvents.filter { $0.type == EventType.edge }
             let newEvents = edgeEvents.count - startCount
 
-            if newEvents > 0 {
-                print("   Edge events: \(edgeEvents.count) (new: \(newEvents))")
+            if newEvents > fulfilledCount {
+                print("   Edge events: \(edgeEvents.count) (new: \(newEvents - fulfilledCount))")
             }
 
-            // Fulfill for each new event
-            for _ in 0..<min(newEvents, count) {
+            // Fulfill only for events we haven't fulfilled yet (newEvents is cumulative)
+            let toFulfill = min(newEvents, count) - fulfilledCount
+            for _ in 0..<toFulfill {
                 expectation.fulfill()
+                fulfilledCount += 1
             }
 
-            if edgeEvents.count >= startCount + count {
+            if fulfilledCount >= count {
                 timer.invalidate()
             }
         }
@@ -529,11 +534,9 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: "catalog")
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: "catalog")
 
-        // Wait for batch to be processed and dispatched
-        Thread.sleep(forTimeInterval: 1.5)
-
         // Then - Should send 1 aggregated Edge event
-        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 3.0)
+        // waitForEdgeEvents polls for events with proper expectation tracking
+        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
         XCTAssertGreaterThan(edgeEvents.count, 0, "Batching: Should send at least 1 aggregated event")
 
         // Verify aggregated payload
@@ -585,10 +588,9 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         trackAssetAndWait(url: "https://example.com/image3.jpg", interaction: .view, location: "gallery")
         trackAssetAndWait(url: "https://example.com/image4.jpg", interaction: .view, location: "gallery")
 
-        Thread.sleep(forTimeInterval: 2.5)
-
         // Even with batching, different assets send separate events for proper CJA breakdown
-        let batchedEvents = waitForEdgeEvents(count: 2, timeout: 4.0)
+        // waitForEdgeEvents polls for events with proper expectation tracking  
+        let batchedEvents = waitForEdgeEvents(count: 2, timeout: 10.0)
         XCTAssertEqual(batchedEvents.count, 2, "Batching: 2 events for 2 different assets (enables CJA asset-level analysis)")
 
         // Each event has 1 asset (proper for CJA filtering/segmentation)
