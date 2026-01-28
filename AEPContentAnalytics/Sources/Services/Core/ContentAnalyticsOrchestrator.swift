@@ -14,16 +14,6 @@ import AEPCore
 import AEPServices
 import Foundation
 
-/// Callback type for updating shared state from the service
-typealias SharedStateUpdateCallback = (String?) -> Void
-
-/// Result of event processing operations.
-enum ProcessingResult {
-    case success
-    case skipped(reason: String)
-    case failure(ContentAnalyticsError)
-}
-
 /// Orchestrates content analytics event processing, batching, and delivery
 class ContentAnalyticsOrchestrator {
 

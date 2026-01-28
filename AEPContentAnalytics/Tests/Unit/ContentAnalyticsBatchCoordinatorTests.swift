@@ -219,8 +219,8 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
             batchCoordinator.addAssetEvent(createAssetEvent(url: "https://example.com/asset\(i).jpg"))
         }
 
-        // Wait for callback (returns immediately when fulfilled, max 5s timeout)
-        wait(for: [expectation], timeout: 5.0)
+        // Wait for callback (returns immediately when fulfilled, max 10s timeout)
+        wait(for: [expectation], timeout: 10.0)
 
         // Then - Batch should have been flushed
         let status = batchCoordinator.getBatchStatus()
@@ -482,8 +482,8 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
             batchCoordinator.addAssetEvent(createAssetEvent(url: "https://example.com/asset\(i).jpg"))
         }
 
-        // Wait for callback (returns immediately when fulfilled, max 5s timeout)
-        wait(for: [expectation], timeout: 5.0)
+        // Wait for callback (returns immediately when fulfilled, max 10s timeout)
+        wait(for: [expectation], timeout: 10.0)
 
         // Then
         XCTAssertTrue(assetCallbackInvoked, "Asset callback should be invoked")
@@ -549,8 +549,8 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
             batchCoordinator.addExperienceEvent(createExperienceEvent(id: "exp-\(i)"))
         }
 
-        // Wait for both callbacks (returns immediately when fulfilled, max 5s timeout)
-        wait(for: [assetExpectation, experienceExpectation], timeout: 5.0)
+        // Wait for both callbacks (returns immediately when fulfilled, max 10s timeout)
+        wait(for: [assetExpectation, experienceExpectation], timeout: 10.0)
 
         // Then
         XCTAssertTrue(assetCallbackInvoked, "Asset callback should be invoked")

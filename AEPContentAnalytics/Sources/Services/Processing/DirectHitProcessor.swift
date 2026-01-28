@@ -14,22 +14,8 @@ import AEPCore
 import AEPServices
 import Foundation
 
-/// Internal processor that accumulates events from disk and dispatches them
-///
-/// This class is used exclusively by `BatchCoordinator` for reading persisted events.
-/// It implements the `HitProcessing` protocol to integrate with `PersistentHitQueue`.
-///
-/// **Responsibilities:**
-/// - Decode events from disk storage
-/// - Accumulate events in memory temporarily
-/// - Dispatch accumulated events via callback when triggered
-///
-/// **Lifecycle:**
-/// 1. Created by `BatchCoordinator` during initialization
-/// 2. Attached to `PersistentHitQueue` for automatic event reading
-/// 3. `processHit()` called by queue for each persisted event
-/// 4. `processAccumulatedEvents()` called by coordinator on flush
-/// 5. Events dispatched to orchestrator via callback
+/// Reads persisted events from disk, accumulates in memory, and dispatches on flush.
+/// Used by BatchCoordinator to integrate with PersistentHitQueue for crash recovery.
 class DirectHitProcessor: HitProcessing {
 
     // MARK: - Types
@@ -44,6 +30,9 @@ class DirectHitProcessor: HitProcessing {
 
     /// Accumulated events waiting to be dispatched
     private var accumulatedEvents: [Event] = []
+
+    /// Event IDs that have been dispatched to Edge (can be removed from disk)
+    private var dispatchedEventIds: Set<String> = []
 
     /// Callback to invoke when events are ready to be processed
     private var processingCallback: ProcessingCallback?
@@ -78,29 +67,40 @@ class DirectHitProcessor: HitProcessing {
         return 0  // Edge handles retries
     }
 
-    /// Process hit from persistent queue (called by PersistentHitQueue)
-    /// - Normal operation: Event already in memory, just mark as processed
-    /// - Crash recovery: Event not in memory, accumulate from disk
+    /// Decode event from disk. Keep on disk unless already dispatched to Edge.
+    /// Returns false to keep, true to remove.
     func processHit(entity: DataEntity, completion: @escaping (Bool) -> Void) {
         guard let eventData = decodeEvent(from: entity) else {
             Log.error(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Failed to decode event | ID: \(entity.uniqueIdentifier)")
-            completion(true)
+            completion(true)  // Remove corrupted data
             return
         }
 
         queue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion(false)
+                return
+            }
 
             let eventId = eventData.event.id.uuidString
+
+            // If already dispatched to Edge, remove from disk
+            if self.dispatchedEventIds.contains(eventId) {
+                Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Event dispatched, removing from disk | ID: \(eventId)")
+                completion(true)  // Remove from disk
+                return
+            }
+
+            // Otherwise, accumulate in memory but keep on disk until dispatched
             let alreadyAccumulated = self.accumulatedEvents.contains { $0.id.uuidString == eventId }
 
             if !alreadyAccumulated {
                 self.accumulatedEvents.append(eventData.event)
-                Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Recovered \(self.type) event from disk | ID: \(eventId)")
+                Log.trace(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Event accumulated, keeping on disk | Type: \(self.type) | ID: \(eventId)")
             }
-        }
 
-        completion(true)  // Mark as processed (will be removed from disk)
+            completion(false)  // Keep on disk until dispatched to Edge
+        }
     }
 
     // MARK: - Event Processing
@@ -112,23 +112,26 @@ class DirectHitProcessor: HitProcessing {
         }
     }
 
-    /// Process all accumulated events
-    ///
-    /// Called by `BatchCoordinator` when a batch flush is triggered.
-    /// Dispatches all accumulated events via the callback and clears the buffer.
-    func processAccumulatedEvents() {
-        queue.async { [weak self] in
+    /// Dispatch all accumulated events via callback, clear buffer, and return events.
+    func processAccumulatedEvents() -> [Event] {
+        var eventsToProcess: [Event] = []
+
+        queue.sync { [weak self] in
             guard let self = self, !self.accumulatedEvents.isEmpty else {
                 return
             }
 
-            let events = self.accumulatedEvents
+            eventsToProcess = self.accumulatedEvents
             self.accumulatedEvents.removeAll()
 
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Processing \(events.count) \(self.type) events from batch")
-
-            self.processingCallback?(events)
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Processing \(eventsToProcess.count) \(self.type) events from batch")
         }
+
+        if !eventsToProcess.isEmpty {
+            processingCallback?(eventsToProcess)
+        }
+
+        return eventsToProcess
     }
 
     /// Clear all accumulated events without processing
@@ -137,6 +140,20 @@ class DirectHitProcessor: HitProcessing {
     func clear() {
         queue.async { [weak self] in
             self?.accumulatedEvents.removeAll()
+            self?.dispatchedEventIds.removeAll()
+        }
+    }
+
+    /// Track event IDs as dispatched. Next processHit() cycle will remove from disk.
+    func markEventsAsDispatched(_ events: [Event]) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+
+            for event in events {
+                self.dispatchedEventIds.insert(event.id.uuidString)
+            }
+
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.BATCH_PROCESSOR, "Marked \(events.count) \(self.type) events as dispatched")
         }
     }
 

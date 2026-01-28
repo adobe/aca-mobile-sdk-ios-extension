@@ -14,18 +14,8 @@ import AEPCore
 import AEPServices
 import Foundation
 
-/// Unified coordinator for batching, persistence, and event processing
-///
-/// This class consolidates three responsibilities into a single, cohesive component:
-/// 1. **Batching Logic**: Tracks event counts and timing to determine when to flush
-/// 2. **Persistence**: Writes events to disk immediately for crash recovery
-/// 3. **Processing Coordination**: Reads persisted events and dispatches to orchestrator
-///
-/// Architecture Benefits:
-/// - Single source of truth for batch state (no duplicate buffers)
-/// - Clear responsibility boundaries
-/// - Simpler state management
-/// - Easier to test and maintain
+/// Coordinates event batching, disk persistence, and flush triggers.
+/// Manages counters and timers to determine when to dispatch accumulated events.
 class BatchCoordinator: BatchCoordinating {
 
     // MARK: - Internal Types
@@ -299,13 +289,7 @@ class BatchCoordinator: BatchCoordinating {
         }
     }
 
-    /// Trigger batch processing - send accumulated events to orchestrator
-    ///
-    /// **Flow:**
-    /// 1. Events persisted to disk (crash recovery)
-    /// 2. PersistentHitQueue processes async → accumulates in DirectHitProcessor
-    /// 3. Flush triggered → send accumulated events
-    /// 4. PersistentHitQueue removes from disk after successful send
+    /// Flush accumulated events to orchestrator, then mark as dispatched for disk cleanup.
     private func performFlush() {
         guard assetEventCount > 0 || experienceEventCount > 0 else { return }
 
@@ -322,8 +306,17 @@ class BatchCoordinator: BatchCoordinating {
         }
 
         // Send accumulated events from DirectHitProcessor
-        assetHitProcessor.processAccumulatedEvents()
-        experienceHitProcessor.processAccumulatedEvents()
+        let assetEvents = assetHitProcessor.processAccumulatedEvents()
+        let experienceEvents = experienceHitProcessor.processAccumulatedEvents()
+
+        // Mark events as dispatched after sending to Edge
+        // This allows disk cleanup on next PersistentHitQueue processing cycle
+        if !assetEvents.isEmpty {
+            assetHitProcessor.markEventsAsDispatched(assetEvents)
+        }
+        if !experienceEvents.isEmpty {
+            experienceHitProcessor.markEventsAsDispatched(experienceEvents)
+        }
     }
 
     /// Schedule automatic batch flush timer

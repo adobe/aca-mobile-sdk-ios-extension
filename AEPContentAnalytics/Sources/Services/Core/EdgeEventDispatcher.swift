@@ -13,21 +13,14 @@ governing permissions and limitations under the License.
 import AEPCore
 import AEPServices
 
-/// A protocol for dispatching events to the Adobe Experience Platform SDK.
-///
-/// This protocol abstracts the event dispatching mechanism, allowing for different
-/// implementations, such as a concrete dispatcher for production use and a mock
-/// dispatcher for testing.
+/// Dispatches events to AEP SDK event hub. Abstracted for testing.
 protocol ContentAnalyticsEventDispatcher: AnyObject {
     /// Dispatches an event to the AEP SDK.
     /// - Parameter event: The `Event` to be dispatched.
     func dispatch(event: Event)
 }
 
-/// A concrete implementation of the `ContentAnalyticsEventDispatcher` protocol.
-///
-/// This class uses the `ExtensionRuntime` to dispatch events to the AEP SDK's event hub,
-/// ensuring that image tracking events are processed by the Adobe Experience Platform Edge Network.
+/// Dispatches events via ExtensionRuntime to the AEP event hub.
 class EdgeEventDispatcher: ContentAnalyticsEventDispatcher {
     private let runtime: ExtensionRuntime
 

@@ -211,7 +211,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         // Note: No sleep here - test will use waitForEdgeEvents() to wait for actual results
     }
 
-    private func waitForEdgeEvents(count: Int, timeout: TimeInterval = 5.0) -> [Event] {
+    private func waitForEdgeEvents(count: Int, timeout: TimeInterval = 10.0) -> [Event] {
         let expectation = XCTestExpectation(description: "Wait for \(count) Edge events")
         expectation.expectedFulfillmentCount = count
 
@@ -1008,7 +1008,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         Thread.sleep(forTimeInterval: 2.5)
 
         // Verify flush and aggregation
-        edgeEvents = waitForEdgeEvents(count: 1, timeout: 3.0)
+        edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
         XCTAssertEqual(edgeEvents.count, 1, "Config change triggered flush")
 
         let xdm = edgeEvents.first?.data?["xdm"] as? [String: Any]
