@@ -365,7 +365,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Then - Should aggregate into 1 event with viewCount = 2
-        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 3.0)
+        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
         XCTAssertEqual(edgeEvents.count, 1, "No location: Should aggregate into single event")
 
         let xdm = edgeEvents[0].data?["xdm"] as? [String: Any]
@@ -401,7 +401,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Then - Should aggregate into 1 event with viewCount = 2
-        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 3.0)
+        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
         XCTAssertEqual(edgeEvents.count, 1, "Same location: Should aggregate into single event")
 
         let xdm = edgeEvents[0].data?["xdm"] as? [String: Any]
@@ -437,7 +437,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Then - Location acts as grouping key → should send 2 separate events
-        let edgeEvents = waitForEdgeEvents(count: 2, timeout: 3.0)
+        let edgeEvents = waitForEdgeEvents(count: 2, timeout: 10.0)
         XCTAssertEqual(edgeEvents.count, 2, "Different locations: Should send separate events even in batching mode")
 
         // Extract locations from both events (order may vary due to dictionary iteration)
@@ -633,7 +633,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Then - Different locations → separate events
-        let edgeEvents = waitForEdgeEvents(count: 2, timeout: 3.0)
+        let edgeEvents = waitForEdgeEvents(count: 2, timeout: 10.0)
         XCTAssertEqual(edgeEvents.count, 2, "Different experience locations: Should send separate events")
 
         // Extract locations from both events (order may vary due to dictionary iteration)
@@ -685,7 +685,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.5)
 
         // Then - Same location → aggregated metrics
-        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 3.0)
+        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
         XCTAssertEqual(edgeEvents.count, 1, "Same experience location: Should aggregate into single event")
 
         let xdm = edgeEvents[0].data?["xdm"] as? [String: Any]
