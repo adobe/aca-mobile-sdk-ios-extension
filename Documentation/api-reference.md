@@ -104,46 +104,37 @@ ContentAnalytics.trackAssetClick(
 
 #### registerExperience
 
-Registers an experience and returns an ID for future tracking.
+Registers an experience and returns an ID for tracking.
 
 ```swift
 static func registerExperience(
-    assetURLs: [String],
-    texts: [ExperienceTextContent],
-    ctas: [ExperienceButtonContent]? = nil,
-    experienceLocation: String
+    assets: [ContentItem],
+    texts: [ContentItem],
+    ctas: [ContentItem]? = nil
 ) -> String
 ```
 
 **Parameters:**
-- `assetURLs`: Array of asset URLs in the experience
-- `texts`: Array of text content (`ExperienceTextContent` objects)
-- `ctas`: (Optional) Array of button/CTA content
-- `experienceLocation`: Location identifier for the experience (used for categorization)
+- `assets`: Asset content items (URLs)
+- `texts`: Text content items
+- `ctas`: (Optional) Button/CTA content items
 
-**Returns:** Experience ID string (e.g., "mobile-abc123...")
+**Returns:** Experience ID (content-based hash)
 
-> **⚠️ Warning:** You must call this method **before** tracking views or clicks for the experience. Failure to do so will result in incomplete data (assets won't be attributed, featurization won't occur).
-
-> **📌 Note:** Experience definitions are cached in memory for the app session. Re-register on app launch for experiences you need to track. Registration is idempotent.
+> **Note:** Call before `trackExperienceView`/`trackExperienceClick`. Registration is idempotent.
 
 **Example:**
 ```swift
-// Step 1: Register experience (do this FIRST)
 let expId = ContentAnalytics.registerExperience(
-    assetURLs: ["https://example.com/product.jpg"],
+    assets: [ContentItem(value: "https://example.com/product.jpg", styles: [:])],
     texts: [
-        ExperienceTextContent(text: "iPhone 16 Pro", textRole: .headline),
-        ExperienceTextContent(text: "$999", textRole: .body)
+        ContentItem(value: "iPhone 16 Pro", styles: ["role": "headline"]),
+        ContentItem(value: "$999", styles: ["role": "price"])
     ],
-    ctas: [
-        ExperienceButtonContent(text: "Buy Now", isEnabled: true)
-    ],
-    experienceLocation: "product.detail.iphone16pro"
+    ctas: [ContentItem(value: "Buy Now", styles: ["enabled": true])]
 )
 
-// Step 2: Track interactions (use the returned ID)
-ContentAnalytics.trackExperienceView(experienceId: expId)
+ContentAnalytics.trackExperienceView(experienceId: expId, experienceLocation: "product.detail")
 ```
 
 ---
@@ -155,24 +146,21 @@ Tracks when an experience is viewed.
 ```swift
 static func trackExperienceView(
     experienceId: String,
+    experienceLocation: String? = nil,
     additionalData: [String: Any]? = nil
 )
 ```
 
 **Parameters:**
-- `experienceId`: The ID returned from `registerExperience()`
-- `additionalData`: (Optional) Additional custom data
-
-> **⚠️ Prerequisite:** You must call `registerExperience()` for this experience ID before calling this method. If the experience definition is not found, a warning will be logged and asset attribution will not occur.
+- `experienceId`: ID from `registerExperience()`
+- `experienceLocation`: (Optional) Where the experience was viewed
+- `additionalData`: (Optional) Custom data
 
 **Example:**
 ```swift
-// First, register the experience
-let expId = ContentAnalytics.registerExperience(...)
-
-// Then track view
 ContentAnalytics.trackExperienceView(
     experienceId: expId,
+    experienceLocation: "homepage.hero",
     additionalData: ["viewDuration": 5.2]
 )
 ```
@@ -186,24 +174,21 @@ Tracks when an experience is clicked.
 ```swift
 static func trackExperienceClick(
     experienceId: String,
+    experienceLocation: String? = nil,
     additionalData: [String: Any]? = nil
 )
 ```
 
 **Parameters:**
-- `experienceId`: The ID returned from `registerExperience()`
-- `additionalData`: (Optional) Additional custom data
-
-> **⚠️ Prerequisite:** You must call `registerExperience()` for this experience ID before calling this method. If the experience definition is not found, a warning will be logged and asset attribution will not occur.
+- `experienceId`: ID from `registerExperience()`
+- `experienceLocation`: (Optional) Where the click occurred
+- `additionalData`: (Optional) Custom data
 
 **Example:**
 ```swift
-// First, register the experience
-let expId = ContentAnalytics.registerExperience(...)
-
-// Then track click
 ContentAnalytics.trackExperienceClick(
     experienceId: expId,
+    experienceLocation: "homepage.hero",
     additionalData: ["element": "buyNow"]
 )
 ```
@@ -298,31 +283,30 @@ ContentAnalytics.trackAsset(
                additionalData:nil];
 ```
 
-### ExperienceTextContent
+### ContentItem
 
-Represents text content within an experience.
+Represents content within an experience (assets, texts, CTAs).
 
 ```swift
-struct ExperienceTextContent {
-    let text: String
-    let textRole: TextRole?
+public struct ContentItem {
+    let value: String
+    let styles: [String: Any]
     
-    enum TextRole: String {
-        case headline
-        case body
-    }
+    init(value: String, styles: [String: Any])
 }
 ```
 
-### ExperienceButtonContent
-
-Represents button/CTA content within an experience.
-
+**Usage:**
 ```swift
-struct ExperienceButtonContent {
-    let text: String
-    let isEnabled: Bool
-}
+// Asset
+ContentItem(value: "https://example.com/image.jpg", styles: [:])
+
+// Text with role
+ContentItem(value: "Product Title", styles: ["role": "headline"])
+ContentItem(value: "$99.99", styles: ["role": "price"])
+
+// CTA
+ContentItem(value: "Buy Now", styles: ["enabled": true])
 ```
 
 ---

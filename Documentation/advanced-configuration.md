@@ -1,393 +1,187 @@
 # Advanced Configuration
 
-Advanced configuration and customization options for the Content Analytics extension.
+## Configuration Keys
 
-## Table of Contents
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `contentanalytics.configId` | String | - | Datastream override |
+| `contentanalytics.region` | String | auto | Featurization region |
+| `contentanalytics.trackExperiences` | Bool | `true` | Enable experience tracking |
+| `contentanalytics.batchingEnabled` | Bool | `true` | Enable batching |
+| `contentanalytics.maxBatchSize` | Int | `10` | Events before flush (1-100) |
+| `contentanalytics.batchFlushInterval` | Double | `2.0` | Seconds between flushes |
+| `contentanalytics.excludedAssetUrlsRegexp` | String | - | Exclude assets by URL |
+| `contentanalytics.excludedAssetLocationsRegexp` | String | - | Exclude assets by location |
+| `contentanalytics.excludedExperienceLocationsRegexp` | String | - | Exclude experiences by location |
 
-- [Event Batching](#event-batching)
-- [Content Filtering](#content-filtering)
-- [Privacy and Consent](#privacy-and-consent)
-- [ML Featurization](#ml-featurization)
-- [Custom Data](#custom-data)
-- [Performance Tuning](#performance-tuning)
-- [Debugging](#debugging)
+**Set via Launch UI** or programmatically:
+
+```swift
+MobileCore.updateConfigurationWith(configDict: [
+    "contentanalytics.maxBatchSize": 20,
+    "contentanalytics.batchFlushInterval": 5.0
+])
+```
 
 ---
 
-## Datastream Configuration
+## Datastream
 
-### Separate Datastream for Content Analytics
+### Separate Datastream
 
-Content Analytics events can be sent to a **different datastream** than your regular app events. This is useful for:
-- Isolating Content Analytics data processing
-- Different data governance requirements
-- Separate datastreams for different purposes
-
-**Configuration in Adobe Launch:**
+Route Content Analytics to a different datastream:
 
 ```json
 {
-  "edge.configId": "main-app-datastream-id",
+  "edge.configId": "main-datastream-id",
   "contentanalytics.configId": "content-analytics-datastream-id"
 }
 ```
 
-**Behavior:**
-- When `contentanalytics.configId` is configured, all Content Analytics events use that datastream
-- Regular app events (e.g., commerce, page views) continue using `edge.configId`
-- If `contentanalytics.configId` is not set, Content Analytics events use the default `edge.configId`
-
-**Programmatic Configuration:**
-
-```swift
-MobileCore.updateConfigurationWith(configDict: [
-    "edge.configId": "main-app-datastream-id",
-    "contentanalytics.configId": "content-analytics-datastream-id"
-])
-```
-
-### Single Datastream (Default)
-
-If you don't need a separate datastream, omit the override:
-
-```json
-{
-  "edge.configId": "unified-datastream-id"
-}
-```
-
-All events (regular and Content Analytics) will use the same datastream. You can still route them to different datasets using datastream event type rules in Adobe Experience Platform.
-
-**Note:** The sandbox for Content Analytics events is determined by the datastream configuration itself in Adobe Experience Platform. The datastream is created in a specific sandbox, and all events using that datastream will automatically route to that sandbox's datasets.
+If `contentanalytics.configId` is not set, uses `edge.configId`.
 
 ---
 
-## Event Batching
+## Region
 
-The extension batches events for better performance and network efficiency.
+Auto-detected from `edge.domain`:
 
-### Configuration
+| Domain | Region |
+|--------|--------|
+| `edge.adobedc.net` | `va7` |
+| `edge-eu.adobedc.net` | `irl1` |
+| `edge-au.adobedc.net` | `aus3` |
 
-Configure in Adobe Data Collection UI:
+For CNAME setups, set explicitly:
 
 ```json
-{
-  "contentanalytics.config": {
-    "batchingEnabled": true,
-    "maxBatchSize": 10,
-    "flushInterval": 2.0
-  }
-}
+{ "contentanalytics.region": "irl1" }
 ```
 
-### Batching Behavior
+---
 
-Events are batched based on `maxBatchSize` and `flushInterval`. Batches flush when:
+## Batching
+
+Flush triggers:
 - Batch reaches `maxBatchSize`
-- `flushInterval` (seconds) has elapsed
-- App moves to background
-
-Events persist to disk and survive app restarts.
-
-### Disabling Batching
-
-Send events immediately:
+- Timer reaches `batchFlushInterval`
+- App backgrounds
 
 ```json
 {
-  "contentanalytics.config": {
-    "batchingEnabled": false
-  }
+  "contentanalytics.batchingEnabled": true,
+  "contentanalytics.maxBatchSize": 10,
+  "contentanalytics.batchFlushInterval": 2.0
 }
+```
+
+Disable for immediate sends:
+
+```json
+{ "contentanalytics.batchingEnabled": false }
 ```
 
 ---
 
-## Content Filtering
+## Filtering
 
-Exclude specific content from tracking using filters.
-
-### Asset URL Regex
-
-Exclude assets by URL using a single regex pattern (use `|` for multiple patterns):
+### By URL
 
 ```json
-{
-  "contentanalytics.config": {
-    "excludedAssetUrlsRegexp": ".*\\.gif$|^https://cdn\\.test\\..*|.*/internal/.*"
-  }
-}
+{ "contentanalytics.excludedAssetUrlsRegexp": ".*\\.gif$|.*spinner.*" }
 ```
 
-**Examples:**
-- `".*\\.gif$"` - Exclude all GIFs
-- `"^https://cdn\\.test\\..*"` - Exclude test CDN
-- `".*\\.gif$|.*\\.svg$"` - Exclude GIFs and SVGs (multiple patterns)
-
-### Asset Locations
-
-Exclude assets by exact location match:
+### By Location
 
 ```json
-{
-  "contentanalytics.config": {
-    "excludedAssetLocations": ["debug", "test", "internal"]
-  }
-}
-```
-
-**Behavior:**
-- Exact string match (not regex)
-- Case-sensitive
-- Assets without location are not affected
-
-### Experience Locations
-
-Exclude experiences by location (exact match or regex):
-
-```json
-{
-  "contentanalytics.config": {
-    "excludedExperienceLocations": ["admin", "settings"],
-    "excludedExperienceLocationsRegexp": "^test\\..*|.*\\.debug$"
-  }
-}
-```
-
-**Filtering Logic:**
-1. Check exact match in `excludedExperienceLocations`
-2. Check regex pattern in `excludedExperienceLocationsRegexp`
-3. If either matches, experience is excluded
-
-### Use Cases
-
-**Development/Testing:**
-```json
-{
-  "excludedAssetLocations": ["dev", "staging"],
-  "excludedExperienceLocationsRegexp": "^test\\..*"
-}
-```
-
-**Performance Optimization:**
-```json
-{
-  "excludedAssetUrlsRegexp": ".*\\.svg$|.*thumb.*"
-}
-```
-
-**Privacy/Compliance:**
-```json
-{
-  "excludedExperienceLocations": ["user.profile", "account.settings"]
-}
+{ "contentanalytics.excludedAssetLocationsRegexp": "^(debug|test).*" }
+{ "contentanalytics.excludedExperienceLocationsRegexp": "^admin\\..*" }
 ```
 
 ---
 
-## Privacy and Consent
-
-### Privacy Status
-
-Control tracking:
-
-```swift
-MobileCore.setPrivacyStatus(.optedIn)  // tracking enabled
-MobileCore.setPrivacyStatus(.optedOut)  // tracking disabled
-MobileCore.setPrivacyStatus(.optUnknown)  // tracking disabled
-```
+## Privacy
 
 ### Edge Consent
 
-For Edge Network consent:
-
 ```swift
-import AEPEdgeConsent
+// Opt in
+Consent.update(with: ["consents": ["collect": ["val": "y"]]])
 
-let consents = ["consents": [
-    "collect": ["val": "y"]
-]]
+// Opt out
+Consent.update(with: ["consents": ["collect": ["val": "n"]]])
 
-Consent.update(with: consents)
+// Pending
+Consent.update(with: ["consents": ["collect": ["val": "p"]]])
 ```
 
-The extension respects both `MobileCore.setPrivacyStatus()` (legacy) and Edge Consent (recommended).
+| Value | Result |
+|-------|--------|
+| `"y"` | Events sent |
+| `"n"` | Events dropped |
+| `"p"` | Events queued |
+
+### Legacy
+
+```swift
+MobileCore.setPrivacyStatus(.optedIn)   // send
+MobileCore.setPrivacyStatus(.optedOut)  // drop + clear
+MobileCore.setPrivacyStatus(.unknown)   // queue
+```
+
+### Data Deletion
+
+```swift
+MobileCore.resetIdentities()  // clears cache + queue
+```
 
 ---
 
-## ML Featurization
+## Featurization
 
-Send experience data to an ML featurization service for metadata extraction.
+Configured automatically. Sends experience content to ML service for feature extraction.
 
-### Configuration
-
-Set the service URL in Adobe Data Collection:
+Payload sent:
 
 ```json
 {
-  "contentanalytics.config": {
-    "featurizationServiceUrl": "https://your-service.example.com"
-  }
-}
-```
-
-### Behavior
-
-When configured:
-- Experience registrations go to the featurization service
-- Service extracts metadata (colors, objects, text sentiment, etc.)
-- Requests are persisted and retried on failure
-
-### Featurization Payload
-
-The service receives:
-
-```json
-{
-  "experienceId": "mobile-abc123...",
+  "experienceId": "mobile-abc123",
   "orgID": "YOUR_ORG@AdobeOrg",
-  "channel": "mobile",
   "content": {
-    "images": [
-      {"value": "https://example.com/image.jpg", "style": {"location": "hero"}}
-    ],
-    "texts": [
-      {"value": "Product Title", "style": {"role": "headline"}}
-    ],
-    "ctas": [
-      {"value": "Buy Now", "style": {"enabled": true}}
-    ]
+    "images": [{"value": "https://...jpg", "style": {}}],
+    "texts": [{"value": "Title", "style": {"role": "headline"}}],
+    "ctas": [{"value": "Buy", "style": {"enabled": true}}]
   }
 }
 ```
 
 ---
 
-## Custom Data
+## Performance
 
-Add custom data using `additionalData`:
-
-### Experience Tracking
-
-```swift
-// On registration
-let expId = ContentAnalytics.registerExperience(
-    assetURLs: [...],
-    texts: [...],
-    ctas: [...],
-    experienceLocation: "product.detail",
-    additionalData: [
-        "sku": "12345",
-        "category": "electronics"
-    ]
-)
-
-// On interaction
-ContentAnalytics.trackExperienceView(
-    experienceId: expId,
-    additionalData: [
-        "viewDuration": 5.2,
-        "scrollDepth": 0.75
-    ]
-)
-
-ContentAnalytics.trackExperienceClick(
-    experienceId: expId,
-    additionalData: [
-        "element": "addToCart",
-        "price": 999.99
-    ]
-)
-```
-
-Custom data appears in the XDM payload under `experienceExtras`.
-
----
-
-## Performance Tuning
-
-### Batch Size
-
-Larger batches = fewer network requests but higher latency:
-
-```json
-{
-  "maxBatchSize": 20,  // Send every 20 events
-  "flushInterval": 5.0  // or every 5 seconds
-}
-```
-
-**Recommendations:**
-- High-frequency apps (gaming, social): 20-50
-- Low-frequency apps (ecommerce): 5-10
-- Real-time requirements: disable batching
-
-### Memory Management
-
-Minimal memory usage:
-- Metrics stored in-memory (< 1KB per asset/experience)
-- Events persisted to disk immediately
-- No large caches or buffers
-
-### Network Efficiency
-
-- Batching reduces requests by 10-100x
-- Persistent queue ensures delivery without retry loops
-- Automatic backoff on failures
+| App Type | maxBatchSize | flushInterval |
+|----------|--------------|---------------|
+| Gaming/social | 20-50 | 5s |
+| E-commerce | 10-20 | 3s |
+| Real-time | 3-5 | 0.5s |
 
 ---
 
 ## Debugging
 
-### Enable Debug Logging
-
-In Adobe Data Collection:
-
-```json
-{
-  "contentanalytics.config": {
-    "debugLogging": true
-  }
-}
-```
-
-Or programmatically:
-
 ```swift
-MobileCore.setLogLevel(.trace)  // most verbose
-MobileCore.setLogLevel(.debug)  // recommended
+MobileCore.setLogLevel(.debug)
 ```
 
-### Log Output
-
-Log prefixes:
-- `[ContentAnalytics]` - Main extension
-- `[ContentAnalytics.Orchestrator]` - Event processing
-- `[ContentAnalytics.Batch]` - Batching
+Log tags:
+- `[ContentAnalytics]` - main
+- `[ContentAnalytics.Batch]` - batching
 - `[ContentAnalytics.Featurization]` - ML service
-
-### Common Patterns
-
-Event flow:
-```
-[ContentAnalytics] Asset view tracked | URL: .../hero.jpg | Location: home.hero
-[ContentAnalytics.Orchestrator] Metrics updated | Asset: mobile-abc123
-[ContentAnalytics.Batch] Batch complete (10 events) | Dispatching to Edge
-```
-
-Featurization:
-```
-[ContentAnalytics.Featurization] Experience queued | ID: mobile-xyz789
-[ContentAnalytics.Featurization] Featurization registered | ID: mobile-xyz789
-```
-
-See [Troubleshooting Guide](troubleshooting.md) for common issues.
 
 ---
 
-## Next Steps
+## See Also
 
 - [API Reference](api-reference.md)
+- [Experience Tracking](EXPERIENCE_TRACKING_GUIDE.md)
 - [Troubleshooting](troubleshooting.md)
-- [Sample App](../SampleApps/AEPContentAnalyticsDemo)
-
