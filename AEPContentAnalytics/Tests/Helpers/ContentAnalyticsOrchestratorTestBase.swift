@@ -78,13 +78,19 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         // Privacy validator allows tracking by default
         mockPrivacyValidator.shouldTrack = true
 
+        // Create featurization coordinator
+        let featurizationCoordinator = FeaturizationCoordinator(
+            state: mockStateManager,
+            privacyValidator: mockPrivacyValidator
+        )
+
         // Create orchestrator with mocked dependencies
         orchestrator = ContentAnalyticsOrchestrator(
             state: mockStateManager,
             eventDispatcher: mockEventDispatcher,
             privacyValidator: mockPrivacyValidator,
             xdmEventBuilder: mockXDMBuilder,
-            featurizationHitQueue: nil,
+            featurizationCoordinator: featurizationCoordinator,
             batchCoordinator: mockBatchCoordinator
         )
     }

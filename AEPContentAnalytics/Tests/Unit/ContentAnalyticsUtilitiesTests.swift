@@ -386,9 +386,7 @@ class ContentAnalyticsUtilitiesTests: XCTestCase {
         // When
         let key = ContentAnalyticsUtilities.generateAssetKey(assetURL: identifier, assetLocation: location)
 
-        // Then
-        // Note: Current implementation doesn't trim whitespace, so this will include the location
-        // This test documents the current behavior
+        // Then - documents current behavior (no whitespace trim)
         XCTAssertTrue(key.contains("location="), "Current implementation includes whitespace location")
     }
 

@@ -33,19 +33,16 @@ class ContentAnalyticsFactory {
     func createContentAnalyticsOrchestrator() -> ContentAnalyticsOrchestrator {
         let eventDispatcher = createEventDispatcher()
         let xdmEventBuilder = createXDMEventBuilder()
-        let featurizationHitQueue = createFeaturizationHitQueue()
-
-        // Create batch coordinator (unified batching and persistence)
+        
+        let featurizationCoordinator = createFeaturizationCoordinator()
         let batchCoordinator = createBatchCoordinator()
 
-        // Create orchestrator with all dependencies (single-phase init)
-        // Use the injected privacy validator instead of creating a new one
         let orchestrator = ContentAnalyticsOrchestrator(
             state: state,
             eventDispatcher: eventDispatcher,
             privacyValidator: privacyValidator,
             xdmEventBuilder: xdmEventBuilder,
-            featurizationHitQueue: featurizationHitQueue,
+            featurizationCoordinator: featurizationCoordinator,
             batchCoordinator: batchCoordinator
         )
 
@@ -61,6 +58,10 @@ class ContentAnalyticsFactory {
 
         return orchestrator
     }
+    
+    private func createFeaturizationCoordinator() -> FeaturizationCoordinator {
+        return FeaturizationCoordinator(state: state, privacyValidator: privacyValidator)
+    }
 
     // MARK: - Helper Component Creation
 
@@ -73,68 +74,55 @@ class ContentAnalyticsFactory {
     }
 
     func createFeaturizationHitQueue() -> PersistentHitQueue? {
-        // Get data queue for persistence (disk storage)
         guard let dataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: ContentAnalyticsConstants.FEATURIZATION_QUEUE_NAME) else {
-            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create data queue for featurization - ServiceProvider.shared.dataQueueService is not available")
+            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create data queue for featurization")
             return nil
         }
 
-        // Get configuration
-        guard let config = state.configuration else {
+        guard let config = state.getCurrentConfiguration() else {
             Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "No configuration available for featurization service")
             return nil
         }
 
-        // Get featurization base URL
-        // Region priority: 1) contentanalytics.region config, 2) parsed from edge.domain, 3) default "va7"
         guard let serviceUrl = config.getFeaturizationBaseUrl() else {
             Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "❌ Cannot determine featurization URL - Edge domain not configured")
             return nil
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Using featurization base URL: \(serviceUrl)")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Featurization URL: \(serviceUrl)")
 
-        // Create featurization service for the processor
         let featurizationService = ExperienceFeaturizationService(
             baseUrl: serviceUrl,
             networkService: ServiceProvider.shared.networkService
         )
 
-        // Create hit processor that handles featurization requests
         let hitProcessor = FeaturizationHitProcessor(featurizationService: featurizationService)
-
-        // Create persistent hit queue with processor
         let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: hitProcessor)
         hitQueue.beginProcessing() // Queue starts suspended by default
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Featurization hit queue created and started")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Featurization queue ready")
 
         return hitQueue
     }
 
     private func createBatchCoordinator() -> BatchCoordinator? {
-        // Get data queues for persistence (disk storage)
         guard let assetDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: ContentAnalyticsConstants.ASSET_BATCH_QUEUE_NAME) else {
-            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create data queue for asset batches - ServiceProvider.shared.dataQueueService is not available")
+            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create asset batch data queue")
             return nil
         }
 
         guard let experienceDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: ContentAnalyticsConstants.EXPERIENCE_BATCH_QUEUE_NAME) else {
-            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create data queue for experience batches - ServiceProvider.shared.dataQueueService is not available")
+            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create experience batch data queue")
             return nil
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "🏗️ Creating BatchCoordinator with data queues...")
-
-        // Create batch coordinator (unified batching, persistence, and processing)
-        // BatchCoordinator creates PersistentHitQueues internally with its own processors
         let batchCoordinator = BatchCoordinator(
             assetDataQueue: assetDataQueue,
             experienceDataQueue: experienceDataQueue,
             state: state
         )
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ BatchCoordinator created - callbacks will be set after orchestrator creation")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ BatchCoordinator ready")
 
         return batchCoordinator
     }

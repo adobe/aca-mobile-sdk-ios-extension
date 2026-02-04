@@ -18,10 +18,10 @@ enum ContentAnalyticsDefaults {
     // MARK: - Batching Configuration
 
     /// Events to collect before flush (balances network efficiency vs data freshness)
-    static let maxBatchSize: Int = 10
+    static let maxBatchSize: Int = ContentAnalyticsConstants.DEFAULT_BATCH_SIZE
 
     /// Seconds between batch flushes
-    static let batchFlushInterval: TimeInterval = 2.0
+    static let batchFlushInterval: TimeInterval = ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL
 }
 
 /// Configuration for ContentAnalytics extension
@@ -41,9 +41,9 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
 
     var experienceCloudOrgId: String?
     var datastreamId: String?  // Edge Network datastream ID (edge.configId)
-    var edgeEnvironment: String?  // Edge environment (prod, int, etc.)
-    var edgeDomain: String?  // Edge domain (can include region)
-    var region: String?  // Org's home region (e.g., "va7", "irl1", "aus5", "jpn4") - for custom domains
+    var edgeEnvironment: String?
+    var edgeDomain: String?
+    var region: String?
 
     // MARK: - Experience Featurization Service
 
@@ -121,26 +121,12 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
 
     // MARK: - Featurization Service URL
 
-    /// Get the effective base URL for featurization service with JAG Gateway routing
-    /// Returns the base URL to use for featurization requests, including region.
-    /// - Returns: The base URL string, or nil if not configured
-    ///
-    /// JAG Gateway URL format: https://{edgeDomain}/aca/{region}
-    ///
-    /// Region priority:
-    /// 1. Explicit contentanalytics.region configuration (for custom domains)
-    /// 2. Parse from edge.domain (for standard Adobe domains)
-    /// 3. Default to "va7" (US Virginia)
     func getFeaturizationBaseUrl() -> String? {
-        // Use Edge domain with /aca/{region} path (JAG Gateway routing)
         guard let domain = edgeDomain, !domain.isEmpty else {
             Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Cannot construct featurization URL - Edge domain not configured")
             return nil
         }
 
-        // Priority 1: Explicit region configuration (for custom domains)
-        // Priority 2: Parse from edge.domain (for standard domains)
-        // Priority 3: Default to US
         let resolvedRegion = region ?? extractRegion(from: domain)
 
         let source: String
@@ -161,48 +147,29 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         return "\(trimmedUrl)/aca/\(resolvedRegion)"
     }
 
-    /// Extract region from Edge domain (using Adobe Edge Network region codes)
-    /// Reference: https://experienceleague.adobe.com/en/docs/experience-platform/landing/edge-and-hub-comparison
-    ///
-    /// - Parameter domain: The Edge Network domain (e.g., "edge.adobedc.net", "edge-eu.adobedc.net")
-    /// - Returns: Adobe Edge Network region code string
-    ///
-    /// Region mapping:
-    /// - Default (no region in domain) → "va7" (Virginia, US East, Platform Hub)
-    /// - "edge-eu.adobedc.net" → "irl1" (Ireland, Europe)
-    /// - "edge-au.adobedc.net" → "aus3" (Australia)
-    /// - "edge-jp.adobedc.net" → "jpn3" (Japan)
-    /// - "edge-in.adobedc.net" → "ind1" (India)
-    /// - "edge-sg.adobedc.net" → "sgp3" (Singapore)
-    /// - "or2" → "or2" (Oregon, US West)
-    /// - "va6" → "va6" (Virginia, US East, Edge)
     private func extractRegion(from domain: String) -> String {
         let lowercasedDomain = domain.lowercased()
 
-        // Check for region-specific domains (using Adobe Edge Network region codes)
-        // Reference: https://experienceleague.adobe.com/en/docs/experience-platform/landing/edge-and-hub-comparison
         if lowercasedDomain.contains("edge-eu") || lowercasedDomain.contains("irl1") {
-            return "irl1"  // Ireland (Europe)
+            return "irl1"
         } else if lowercasedDomain.contains("edge-au") || lowercasedDomain.contains("aus3") {
-            return "aus3"  // Australia
+            return "aus3"
         } else if lowercasedDomain.contains("edge-jp") || lowercasedDomain.contains("jpn3") {
-            return "jpn3"  // Japan
+            return "jpn3"
         } else if lowercasedDomain.contains("edge-in") || lowercasedDomain.contains("ind1") {
-            return "ind1"  // India
+            return "ind1"
         } else if lowercasedDomain.contains("edge-sg") || lowercasedDomain.contains("sgp3") {
-            return "sgp3"  // Singapore
+            return "sgp3"
         } else if lowercasedDomain.contains("or2") {
-            return "or2"   // Oregon (US West)
+            return "or2"
         } else if lowercasedDomain.contains("va6") {
-            return "va6"   // Virginia (US East, Edge)
+            return "va6"
         } else {
-            return "va7"   // Default: Virginia (US East, Platform Hub)
+            return "va7"
         }
     }
 
-    /// Compile regex patterns into NSRegularExpression objects
     mutating func compileRegexPatterns() {
-        // Compile asset location regex
         if let pattern = excludedAssetLocationsRegexp, !pattern.isEmpty {
             do {
                 compiledAssetLocationRegex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
@@ -215,7 +182,6 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
             compiledAssetLocationRegex = nil
         }
 
-        // Compile asset URL regex
         if let pattern = excludedAssetUrlsRegexp, !pattern.isEmpty {
             do {
                 compiledAssetUrlRegex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
@@ -228,7 +194,6 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
             compiledAssetUrlRegex = nil
         }
 
-        // Compile experience location regex
         if let pattern = excludedExperienceLocationsRegexp, !pattern.isEmpty {
             do {
                 compiledExperienceLocationRegex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
@@ -271,8 +236,8 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         featurizationMaxRetries = try container.decodeIfPresent(Int.self, forKey: .featurizationMaxRetries) ?? 3
         featurizationRetryDelay = try container.decodeIfPresent(TimeInterval.self, forKey: .featurizationRetryDelay) ?? 0.5
         batchingEnabled = try container.decodeIfPresent(Bool.self, forKey: .batchingEnabled) ?? true
-        maxBatchSize = try container.decodeIfPresent(Int.self, forKey: .maxBatchSize) ?? 10
-        batchFlushInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .batchFlushInterval) ?? 2.0
+        maxBatchSize = try container.decodeIfPresent(Int.self, forKey: .maxBatchSize) ?? ContentAnalyticsConstants.DEFAULT_BATCH_SIZE
+        batchFlushInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .batchFlushInterval) ?? ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL
         debugLogging = try container.decodeIfPresent(Bool.self, forKey: .debugLogging) ?? false
 
         version = try container.decodeIfPresent(String.self, forKey: .version) ?? ContentAnalyticsConstants.EXTENSION_VERSION
@@ -302,7 +267,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
                 }
             case "maxBatchSize":
                 if let size = value as? Int, size > 0 {
-                    newConfig.maxBatchSize = min(size, 100)
+                    newConfig.maxBatchSize = min(size, ContentAnalyticsConstants.MAX_BATCH_SIZE)
                 }
             case "debugLogging":
                 if let debug = value as? Bool {
@@ -369,7 +334,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         return BatchingConfiguration(
             maxBatchSize: maxBatchSize,
             flushInterval: batchFlushInterval,
-            maxWaitTime: batchFlushInterval * 2.5
+            maxWaitTime: batchFlushInterval * ContentAnalyticsConstants.MAX_WAIT_TIME_MULTIPLIER
         )
     }
 }

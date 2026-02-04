@@ -683,8 +683,7 @@ class ContentAnalyticsExclusionTests: ContentAnalyticsTestBase {
 
         let duration = Date().timeIntervalSince(startTime)
 
-        // Then - Should still be reasonably fast
-        // Note: Increased tolerance to account for CI/system load variability
+        // Then - verify performance (tolerance for CI variability)
         XCTAssertLessThan(duration, 0.5, "Complex regex should still be performant (< 500ms for 1000 checks)")
     }
 }

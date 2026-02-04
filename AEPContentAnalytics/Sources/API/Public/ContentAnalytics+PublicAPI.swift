@@ -33,6 +33,12 @@ public extension ContentAnalytics {
         assetLocation: String? = nil,
         additionalData: [String: Any]? = nil
     ) {
+        // Validation
+        guard !assetURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackAsset called with empty assetURL - ignoring")
+            return
+        }
+        
         var eventData: [String: Any] = [
             AssetTrackingEventPayload.RequiredFields.assetURL: assetURL,
             AssetTrackingEventPayload.RequiredFields.interactionType: interactionType.stringValue
@@ -159,6 +165,12 @@ public extension ContentAnalytics {
         experienceLocation: String? = nil,
         additionalData: [String: Any]? = nil
     ) {
+        // Validation
+        guard !experienceId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackExperienceView called with empty experienceId - ignoring")
+            return
+        }
+        
         var eventData: [String: Any] = [
             ExperienceTrackingEventPayload.RequiredFields.experienceId: experienceId,
             ExperienceTrackingEventPayload.RequiredFields.interactionType: InteractionType.view.stringValue
@@ -186,6 +198,12 @@ public extension ContentAnalytics {
         experienceLocation: String? = nil,
         additionalData: [String: Any]? = nil
     ) {
+        // Validation
+        guard !experienceId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackExperienceClick called with empty experienceId - ignoring")
+            return
+        }
+        
         var eventData: [String: Any] = [
             ExperienceTrackingEventPayload.RequiredFields.experienceId: experienceId,
             ExperienceTrackingEventPayload.RequiredFields.interactionType: InteractionType.click.stringValue
@@ -218,6 +236,12 @@ public extension ContentAnalytics {
         interactionType: InteractionType = .view,
         assetLocation: String? = nil
     ) {
+        // Validation
+        guard !assetURLs.isEmpty else {
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackAssetCollection called with empty assetURLs array - ignoring")
+            return
+        }
+        
         for assetURL in assetURLs {
             trackAsset(
                 assetURL: assetURL,

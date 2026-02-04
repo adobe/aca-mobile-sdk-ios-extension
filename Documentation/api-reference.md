@@ -100,6 +100,8 @@ ContentAnalytics.trackAssetClick(
 
 ### Experience Tracking
 
+> ⚠️ **IMPORTANT**: You must call `registerExperience()` **before** tracking views or clicks. See the [Experience Tracking Guide](EXPERIENCE_TRACKING_GUIDE.md) for detailed usage patterns.
+
 #### registerExperience
 
 Registers an experience and returns an ID for future tracking.
@@ -121,8 +123,13 @@ static func registerExperience(
 
 **Returns:** Experience ID string (e.g., "mobile-abc123...")
 
+> **⚠️ Warning:** You must call this method **before** tracking views or clicks for the experience. Failure to do so will result in incomplete data (assets won't be attributed, featurization won't occur).
+
+> **📌 Note:** Experience definitions are cached in memory for the app session. Re-register on app launch for experiences you need to track. Registration is idempotent.
+
 **Example:**
 ```swift
+// Step 1: Register experience (do this FIRST)
 let expId = ContentAnalytics.registerExperience(
     assetURLs: ["https://example.com/product.jpg"],
     texts: [
@@ -134,6 +141,9 @@ let expId = ContentAnalytics.registerExperience(
     ],
     experienceLocation: "product.detail.iphone16pro"
 )
+
+// Step 2: Track interactions (use the returned ID)
+ContentAnalytics.trackExperienceView(experienceId: expId)
 ```
 
 ---
@@ -153,8 +163,14 @@ static func trackExperienceView(
 - `experienceId`: The ID returned from `registerExperience()`
 - `additionalData`: (Optional) Additional custom data
 
+> **⚠️ Prerequisite:** You must call `registerExperience()` for this experience ID before calling this method. If the experience definition is not found, a warning will be logged and asset attribution will not occur.
+
 **Example:**
 ```swift
+// First, register the experience
+let expId = ContentAnalytics.registerExperience(...)
+
+// Then track view
 ContentAnalytics.trackExperienceView(
     experienceId: expId,
     additionalData: ["viewDuration": 5.2]
@@ -178,8 +194,14 @@ static func trackExperienceClick(
 - `experienceId`: The ID returned from `registerExperience()`
 - `additionalData`: (Optional) Additional custom data
 
+> **⚠️ Prerequisite:** You must call `registerExperience()` for this experience ID before calling this method. If the experience definition is not found, a warning will be logged and asset attribution will not occur.
+
 **Example:**
 ```swift
+// First, register the experience
+let expId = ContentAnalytics.registerExperience(...)
+
+// Then track click
 ContentAnalytics.trackExperienceClick(
     experienceId: expId,
     additionalData: ["element": "buyNow"]

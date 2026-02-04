@@ -68,6 +68,7 @@ public class ContentAnalytics: NSObject, Extension {
             Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Reading initial configuration from shared state")
             if let config = parseConfiguration(from: configData) {
                 contentAnalyticsState.updateConfiguration(config)
+                contentAnalyticsOrchestrator.updateConfiguration(config)
             }
         }
 
@@ -101,19 +102,19 @@ public class ContentAnalytics: NSObject, Extension {
             return
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "⚙️ Configuration response | Data: \(configurationData)")
+        Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Received configuration")
 
         if let config = parseConfiguration(from: configurationData) {
             contentAnalyticsState.updateConfiguration(config)
-            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Configuration updated")
+            contentAnalyticsOrchestrator.updateConfiguration(config)
+            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Config applied")
 
-            // Create featurization queue if not yet initialized (lazy initialization on first valid config)
             if !contentAnalyticsOrchestrator.hasFeaturizationQueue() {
                 let newQueue = factory.createFeaturizationHitQueue()
                 contentAnalyticsOrchestrator.initializeFeaturizationQueueIfNeeded(queue: newQueue)
             }
         } else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "⚠️ Failed to parse configuration")
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "⚠️ Invalid config data")
         }
     }
 
@@ -153,7 +154,7 @@ public class ContentAnalytics: NSObject, Extension {
     }
 
     private func handleIdentityReset(event: Event) {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "🔄 Identity reset requested - clearing state and pending events")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "🔄 Identity reset - clearing state")
 
         // Clear state (configuration, sent experience definitions)
         contentAnalyticsState.reset()
@@ -186,7 +187,7 @@ public class ContentAnalytics: NSObject, Extension {
             switch result {
             case .success:
                 if let assetURL = event.assetURL {
-                    Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Asset event processed successfully: \(event.name) - \(assetURL)")
+                    Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Asset event: \(event.name) - \(assetURL)")
                 }
             case .failure(let error):
                 Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Asset event processing failed: \(event.name) - \(error)")
@@ -199,7 +200,7 @@ public class ContentAnalytics: NSObject, Extension {
             switch result {
             case .success:
                 if let experienceId = event.experienceId {
-                    Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Experience event processed successfully: \(event.name) - \(experienceId)")
+                    Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Experience event: \(event.name) - \(experienceId)")
                 }
             case .failure(let error):
                 Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Experience event processing failed: \(event.name) - \(error)")

@@ -86,7 +86,7 @@ class MockBatchCoordinator: BatchCoordinating {
         flushCallCount += 1
     }
 
-    func clear() {
+    func clearPendingBatch() {
         clearCalled = true
         assetEvents.removeAll()
         experienceEvents.removeAll()
@@ -272,8 +272,7 @@ class HitProcessorMockFeaturizationService: ExperienceFeaturizationServiceProtoc
 }
 
 // FeaturizationMockNetworkService and FeaturizationMockHttpConnection removed
-// These mocks are only used by disabled test files (ExperienceFeaturizationServiceTests.swift.disabled)
-// If you need to re-enable those tests, these mocks will need to be rewritten to properly conform to HttpConnection protocol
+// Note: Network mocking is complex; featurization tests focus on data structures and encoding
 
 class OrchestratorMockStateManager {
     var isEnabled = true

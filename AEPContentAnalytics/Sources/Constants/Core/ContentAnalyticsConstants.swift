@@ -20,14 +20,30 @@ enum ContentAnalyticsConstants {
     /// DataStore name
     static let DATASTORE_NAME = EXTENSION_NAME
 
-    /// Featurization persistent hit queue name (following Adobe Edge pattern)
     static let FEATURIZATION_QUEUE_NAME = "com.adobe.module.contentanalytics.featurization"
-
-    /// Asset batch persistent hit queue name (for crash-resistant batching)
     static let ASSET_BATCH_QUEUE_NAME = "com.adobe.module.contentanalytics.assetbatch"
-
-    /// Experience batch persistent hit queue name (for crash-resistant batching)
     static let EXPERIENCE_BATCH_QUEUE_NAME = "com.adobe.module.contentanalytics.experiencebatch"
+    static let MAX_EXPERIENCE_DEFINITIONS_IN_MEMORY = 100
+    
+    // MARK: - Batching Configuration Limits
+    
+    /// Default batch size (events per batch)
+    static let DEFAULT_BATCH_SIZE = 10
+    
+    /// Minimum allowed batch size
+    static let MIN_BATCH_SIZE = 1
+    
+    /// Maximum allowed batch size
+    static let MAX_BATCH_SIZE = 100
+    
+    /// Default batch flush interval (seconds)
+    static let DEFAULT_FLUSH_INTERVAL: TimeInterval = 2.0
+    
+    /// Default maximum wait time (seconds)
+    static let DEFAULT_MAX_WAIT_TIME: TimeInterval = 5.0
+    
+    /// Multiplier for calculating max wait time from flush interval
+    static let MAX_WAIT_TIME_MULTIPLIER: Double = 2.5
 
     /// Extension version
     static let EXTENSION_VERSION = "5.0.0-beta.1"

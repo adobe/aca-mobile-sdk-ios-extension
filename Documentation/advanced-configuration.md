@@ -234,10 +234,9 @@ Set the service URL in Adobe Data Collection:
 ### Behavior
 
 When configured:
-- Experience registrations sent to featurization service
+- Experience registrations go to the featurization service
 - Service extracts metadata (colors, objects, text sentiment, etc.)
-- Requests persisted and retried automatically
-- 100% delivery guarantee via persistent queue
+- Requests are persisted and retried on failure
 
 ### Featurization Payload
 

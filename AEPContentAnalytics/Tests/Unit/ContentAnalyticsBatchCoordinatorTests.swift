@@ -32,9 +32,10 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         // Create state manager
         stateManager = ContentAnalyticsStateManager()
 
-        // Get data queues from ServiceProvider (real queues for testing)
-        guard let assetDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: "test.asset.queue"),
-              let experienceDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: "test.experience.queue") else {
+        // Use unique queue labels per test to prevent cross-test pollution
+        let testID = UUID().uuidString
+        guard let assetDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: "test.asset.\(testID)"),
+              let experienceDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: "test.experience.\(testID)") else {
             XCTFail("Failed to create data queues")
             return
         }
@@ -432,7 +433,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         waitForAsync(timeout: 0.2)
 
         // When - Clear
-        batchCoordinator.clear()
+        batchCoordinator.clearPendingBatch()
 
         // Wait for clear
         waitForAsync(timeout: 0.2)
@@ -445,7 +446,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
 
     func testClear_EmptyBatch_HandlesGracefully() {
         // When - Clear with no events
-        batchCoordinator.clear()
+        batchCoordinator.clearPendingBatch()
 
         // Wait briefly
         waitForAsync(timeout: 0.2)
@@ -490,9 +491,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         XCTAssertFalse(experienceCallbackInvoked, "Experience callback should NOT be invoked")
     }
 
-    // MARK: Disabled - Flaky on CI (experience callbacks work in E2E tests and mixed callbacks work in unit tests)
-    // TODO: Investigate why experience-only callback test is flaky (implementation is correct, test setup issue)
-    func disabled_testCallbacks_ExperienceEvents_InvokesExperienceCallback() {
+    func testCallbacks_ExperienceEvents_InvokesExperienceCallback() {
         // Given - Expectation for callback
         let expectation = XCTestExpectation(description: "Experience callback invoked")
         
@@ -660,7 +659,7 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
 
         waitForAsync(timeout: 0.2)
 
-        batchCoordinator.clear()
+        batchCoordinator.clearPendingBatch()
         waitForAsync(timeout: 0.2)
 
         // Then - State should be reset
