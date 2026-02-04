@@ -152,11 +152,7 @@ DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
 ```
 
 **Solution:**
-This is normal for temporary outages. The extension:
-- Automatically retries with exponential backoff
-- Persists requests to disk
-- Survives app restarts
-- Guarantees 100% delivery
+This is normal for temporary outages. The extension retries automatically with exponential backoff. Requests persist to disk and survive app restarts.
 
 **If persistent (> 24 hours):**
 1. Verify `featurizationServiceUrl` is correct

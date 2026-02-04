@@ -14,83 +14,46 @@ import AEPCore
 import AEPServices
 import Foundation
 
-/// Orchestrates content analytics event processing, batching, and delivery
 class ContentAnalyticsOrchestrator {
 
-    // MARK: - Event Property Extractors
-
-    /// Extracts asset key from an event
     private static let assetKeyExtractor: (Event) -> String? = { $0.assetKey }
-
-    /// Extracts experience key from an event
     private static let experienceKeyExtractor: (Event) -> String? = { $0.experienceKey }
-
-    /// Extracts asset URL identifier from an event
     private static let assetIdentifierExtractor: (Event) -> String? = { $0.assetURL }
-
-    /// Extracts experience ID identifier from an event
     private static let experienceIdentifierExtractor: (Event) -> String? = { $0.experienceId }
-
-    /// Extracts asset extras from an event
     private static let assetExtrasExtractor: (Event) -> [String: Any]? = { $0.assetExtras }
-
-    /// Extracts experience extras from an event
     private static let experienceExtrasExtractor: (Event) -> [String: Any]? = { $0.experienceExtras }
-
-    // MARK: - Properties
 
     private let state: ContentAnalyticsStateManager
     private let eventDispatcher: ContentAnalyticsEventDispatcher
     private let privacyValidator: PrivacyValidator
     private let xdmEventBuilder: XDMEventBuilderProtocol
-    private var featurizationHitQueue: PersistentHitQueue?
+    private let featurizationCoordinator: FeaturizationCoordinator
     private let batchCoordinator: BatchCoordinating?
-
-    // MARK: - Initialization
 
     init(
         state: ContentAnalyticsStateManager,
         eventDispatcher: ContentAnalyticsEventDispatcher,
         privacyValidator: PrivacyValidator,
         xdmEventBuilder: XDMEventBuilderProtocol,
-        featurizationHitQueue: PersistentHitQueue?,
+        featurizationCoordinator: FeaturizationCoordinator,
         batchCoordinator: BatchCoordinating?
     ) {
         self.state = state
         self.eventDispatcher = eventDispatcher
         self.privacyValidator = privacyValidator
         self.xdmEventBuilder = xdmEventBuilder
-        self.featurizationHitQueue = featurizationHitQueue
+        self.featurizationCoordinator = featurizationCoordinator
         self.batchCoordinator = batchCoordinator
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Orchestrator initialized")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Orchestrator initialized with featurization coordinator")
     }
 
-    // MARK: - Public Methods
-
-    /// Check if featurization queue is already initialized.
-    /// Used by extension to avoid recreating the queue on every config change.
     func hasFeaturizationQueue() -> Bool {
-        return featurizationHitQueue != nil
+        return featurizationCoordinator.hasQueue
     }
 
-    /// Initializes the featurization hit queue if not already created (lazy initialization)
-    /// Only called once when valid configuration first becomes available
-    /// - Parameter queue: The newly created featurization queue (or nil if config is invalid)
     func initializeFeaturizationQueueIfNeeded(queue: PersistentHitQueue?) {
-        // Only set queue if it doesn't exist yet
-        guard featurizationHitQueue == nil else {
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization queue already initialized - skipping")
-            return
-        }
-
-        featurizationHitQueue = queue
-
-        if featurizationHitQueue != nil {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization queue initialized")
-        } else {
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization queue not yet available")
-        }
+        featurizationCoordinator.initializeQueue(queue)
     }
 
     func processAssetEvent(_ event: Event, completion: @escaping (Result<Void, ContentAnalyticsError>) -> Void) {
@@ -116,8 +79,10 @@ class ContentAnalyticsOrchestrator {
             return
         }
 
-        // Process the event
+        // Process the event (synchronous - batching or immediate dispatch)
         processValidatedAssetEvent(event)
+        
+        // Processing succeeded (event validated and queued/dispatched)
         completion(.success(()))
     }
 
@@ -144,39 +109,28 @@ class ContentAnalyticsOrchestrator {
         }
 
         // Experience-specific validation
-        guard state.configuration?.trackExperiences == true else {
+        guard state.getCurrentConfiguration()?.trackExperiences == true else {
             Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience tracking is disabled in configuration")
             completion(.success(())) // Not an error, just disabled
             return
         }
 
-        // Process the event (location lookup happens in MetricsManager)
+        // Process the event (synchronous - batching or immediate dispatch)
         processValidatedExperienceEvent(event)
+        
+        // Processing succeeded (event validated and queued/dispatched)
         completion(.success(()))
     }
 
-    // MARK: - Private Validation
-
     private func validateProcessingConditions() -> ContentAnalyticsError? {
         // Check configuration state
-        guard state.configuration != nil else {
+        guard state.getCurrentConfiguration() != nil else {
             return .invalidConfiguration
         }
 
         return nil
     }
 
-    // MARK: - Private Event Processing
-
-    /// Generic method to process a validated event (asset or experience)
-    /// - Parameters:
-    ///   - event: The validated event
-    ///   - entityType: The entity type (for logging)
-    ///   - identifier: Closure to extract the entity identifier
-    ///   - shouldExclude: Closure to check if the entity should be excluded
-    ///   - preProcessing: Optional pre-processing before batching/sending (e.g., storing definition)
-    ///   - addToBatch: Closure to add event to batch processor
-    ///   - sendImmediately: Closure to send event immediately
     private func processValidatedEvent(
         _ event: Event,
         entityType: String,
@@ -194,7 +148,6 @@ class ContentAnalyticsOrchestrator {
             return
         }
 
-        // Execute any pre-processing (e.g., store experience definition)
         preProcessing?(event)
 
         // Check if batching is enabled
@@ -209,9 +162,6 @@ class ContentAnalyticsOrchestrator {
         Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processed \(entityType) event: \(id)")
     }
 
-    // MARK: - Event Processing Helpers
-
-    /// Checks if an asset event should be excluded based on URL patterns or location
     private func shouldExcludeAssetEvent(_ event: Event) -> Bool {
         // Check URL pattern exclusion
         if let assetURL = event.assetURL, let url = URL(string: assetURL) {
@@ -228,13 +178,10 @@ class ContentAnalyticsOrchestrator {
         return false
     }
 
-    /// Checks if an experience event should be excluded based on location patterns
     private func shouldExcludeExperienceEvent(_ event: Event) -> Bool {
         return !state.shouldTrackExperience(location: event.experienceLocation)
     }
 
-    /// Extracts asset context (URL and location) from an event for metrics
-    /// assetLocation is optional so we only include it if present
     private func extractAssetContext(_ event: Event) -> [String: Any]? {
         guard let assetURL = event.assetURL else {
             return nil // assetURL is required
@@ -249,8 +196,6 @@ class ContentAnalyticsOrchestrator {
         return context
     }
 
-    /// Extracts experience context (location) from an event for metrics
-    /// experienceLocation is optional so we only include it if present
     private func extractExperienceContext(_ event: Event) -> [String: Any]? {
         guard let experienceID = event.experienceId else { return nil }
 
@@ -272,7 +217,7 @@ class ContentAnalyticsOrchestrator {
             return
         }
 
-        state.storeExperienceDefinition(
+        state.registerExperienceDefinition(
             experienceId: definitionData.experienceId,
             assets: definitionData.assets,
             texts: definitionData.texts,
@@ -287,8 +232,10 @@ class ContentAnalyticsOrchestrator {
         batchCoordinator?.addAssetEvent(event)
     }
 
-    /// Adds an experience event to the batch coordinator
     private func addExperienceEventToBatch(_ event: Event) {
+        guard !event.isExperienceDefinition else {
+            return
+        }
         batchCoordinator?.addExperienceEvent(event)
     }
 
@@ -323,18 +270,11 @@ class ContentAnalyticsOrchestrator {
         batchCoordinator?.flush()
     }
 
-    /// Clears pending batch without sending (e.g., on identity reset)
     func clearPendingBatch() {
         Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Clearing pending batch without sending")
-        batchCoordinator?.clear()
+        batchCoordinator?.clearPendingBatch()
     }
 
-    /// Updates the orchestrator configuration when settings change.
-    /// 
-    /// When batching is disabled (toggled from enabled to disabled), this method automatically
-    /// flushes any pending batched events to ensure they are not lost.
-    /// 
-    /// - Parameter config: The new content analytics configuration
     func updateConfiguration(_ config: ContentAnalyticsConfiguration) {
         Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Updating orchestrator configuration")
 
@@ -351,14 +291,6 @@ class ContentAnalyticsOrchestrator {
         batchCoordinator?.updateConfiguration(config.toBatchingConfiguration())
     }
 
-    // MARK: - Immediate Send (Non-Batched Mode)
-
-    /// Generic method to send a single event immediately without batching
-    /// - Parameters:
-    ///   - event: The event to send immediately
-    ///   - entityType: The type of entity (e.g., "asset", "experience")
-    ///   - keyExtractor: Closure that extracts the entity key from the event
-    ///   - processEvents: Closure that processes the events (single or batch)
     private func sendEventImmediately(
         _ event: Event,
         entityType: String,
@@ -406,7 +338,6 @@ class ContentAnalyticsOrchestrator {
         processExperienceEvents(events)
     }
 
-    /// Process asset events (single or batch) and dispatch to Edge Network
     private func processAssetEvents(_ assetEvents: [Event]) {
         Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processing asset events | EventCount: \(assetEvents.count)")
 
@@ -478,40 +409,13 @@ class ContentAnalyticsOrchestrator {
             }
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Successfully sent experience batch via Edge")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience batch sent")
     }
 
-    /// Queue experience definition to featurization service for ML training
     private func sendExperienceDefinitionEvent(experienceId: String, events: [Event]) {
-        // Validate prerequisites
-        guard let prerequisites = ContentAnalyticsFeaturizationHelper.validatePrerequisites(
-            experienceId: experienceId,
-            state: state,
-            privacyValidator: privacyValidator
-        ) else {
-            return
-        }
-
-        // Build content for featurization service
-        guard let content = ContentAnalyticsFeaturizationHelper.buildContent(
-            definition: prerequisites.definition,
-            config: prerequisites.config,
-            imsOrg: prerequisites.imsOrg,
-            experienceId: experienceId
-        ) else {
-            return
-        }
-
-        // Encode and queue the hit
-        ContentAnalyticsFeaturizationHelper.queueHit(
-            experienceId: experienceId,
-            imsOrg: prerequisites.imsOrg,
-            content: content,
-            queue: featurizationHitQueue
-        )
+        featurizationCoordinator.queueExperience(experienceId: experienceId)
     }
 
-    /// Sends asset interaction event with aggregated metrics to Edge Network
     private func sendAssetInteractionEvent(
         assetKeys: [String],
         aggregatedMetrics: [String: [String: Any]],
@@ -532,7 +436,7 @@ class ContentAnalyticsOrchestrator {
             eventType: "Asset"
         )
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Successfully sent asset batch via Edge")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Asset batch sent")
     }
 
     /// Sends experience interaction event with aggregated metrics to Edge Network
@@ -576,7 +480,7 @@ class ContentAnalyticsOrchestrator {
 
         let viewCount = (aggregatedMetrics["viewCount"] as? NSNumber)?.intValue ?? 0
         let clickCount = (aggregatedMetrics["clickCount"] as? NSNumber)?.intValue ?? 0
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Successfully sent experience interaction via Edge | Views: \(viewCount) | Clicks: \(clickCount)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience interaction sent (views=\(viewCount), clicks=\(clickCount))")
     }
 
     // MARK: - Edge Network Dispatch
@@ -606,7 +510,7 @@ class ContentAnalyticsOrchestrator {
 
     /// Builds Edge configuration override for datastream
     private func buildEdgeConfigOverride() -> [String: Any]? {
-        guard let config = state.configuration else { return nil }
+        guard let config = state.getCurrentConfiguration() else { return nil }
 
         guard let datastreamId = config.datastreamId else { return nil }
 
@@ -619,17 +523,6 @@ class ContentAnalyticsOrchestrator {
         return configOverride
     }
 
-    // MARK: - Helper Methods for Metrics Calculation
-
-    /// Build aggregated metrics with context and extras in one pass from events
-    /// - Parameters:
-    ///   - events: Array of events to process
-    ///   - keyExtractor: Closure that extracts the grouping key from each event
-    ///   - contextExtractor: Closure that extracts context fields from a representative event
-    ///   - extrasKey: Optional key for extras field (e.g., "assetExtras", "experienceExtras")
-    ///   - extrasExtractor: Optional closure to extract extras from events
-    /// - Returns: Dictionary mapping keys to aggregated metrics with context, extras, and interaction type
-    /// Builds typed asset metrics from events
     private func buildAssetMetricsCollection(from events: [Event]) -> (collection: AssetMetricsCollection, interactionType: InteractionType) {
         let groupedEvents = Dictionary(grouping: events) { $0.assetKey ?? "" }
         var metricsMap: [String: AssetMetrics] = [:]
@@ -670,7 +563,6 @@ class ContentAnalyticsOrchestrator {
         return (AssetMetricsCollection(metrics: metricsMap), interactionType)
     }
 
-    /// Builds typed experience metrics from events
     private func buildExperienceMetricsCollection(from events: [Event]) -> (collection: ExperienceMetricsCollection, interactionType: InteractionType) {
         let groupedEvents = Dictionary(grouping: events) { $0.experienceKey ?? "" }
         var metricsMap: [String: ExperienceMetrics] = [:]

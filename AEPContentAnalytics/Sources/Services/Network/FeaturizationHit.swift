@@ -28,7 +28,6 @@ struct FeaturizationHit: Codable {
         self.attemptCount = attemptCount
     }
 
-    /// Creates a copy with incremented attempt count (for retry tracking)
     func incrementingAttempt() -> FeaturizationHit {
         return FeaturizationHit(
             experienceId: experienceId,

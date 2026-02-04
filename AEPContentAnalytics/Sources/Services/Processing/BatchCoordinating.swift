@@ -24,8 +24,8 @@ protocol BatchCoordinating {
     /// Flush all pending events
     func flush()
 
-    /// Clear all pending events
-    func clear()
+    /// Clear all pending events without sending
+    func clearPendingBatch()
 
     /// Update batch configuration
     func updateConfiguration(_ config: BatchingConfiguration)

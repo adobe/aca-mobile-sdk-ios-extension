@@ -14,7 +14,7 @@ import AEPServices
 import Foundation
 
 /// Stored experience definition for asset attribution
-struct ExperienceDefinition {
+struct ExperienceDefinition: Codable {
     let experienceId: String
     let assets: [String]
     let texts: [ContentItem]
@@ -22,77 +22,49 @@ struct ExperienceDefinition {
     var sentToFeaturization: Bool
 }
 
-/// State manager for configuration and URL tracking
-/// Metrics are calculated on-the-fly from PersistentQueue events
 class ContentAnalyticsStateManager {
 
     private let stateQueue = DispatchQueue(label: "com.adobe.contentanalytics.state", qos: .userInitiated)
+    private let configManager: ConfigurationManaging
+    private let definitionCache: DefinitionCacheProtocol
+    
+    init(configManager: ConfigurationManaging = ConfigurationManager(),
+         definitionCache: DefinitionCacheProtocol = DefinitionCache()) {
+        self.configManager = configManager
+        self.definitionCache = definitionCache
+    }
 
-    /// Current configuration
-    var configuration: ContentAnalyticsConfiguration?
-
-    /// Registered experience definitions (for asset attribution and featurization tracking)
-    private var experienceDefinitions: [String: ExperienceDefinition] = [:]
-
-    // MARK: - Configuration Management
-
-    /// Check if batching is enabled (convenience getter)
     var batchingEnabled: Bool {
-        return stateQueue.sync {
-            return configuration?.batchingEnabled ?? false
-        }
+        return configManager.batchingEnabled
     }
 
-    /// Update configuration
     func updateConfiguration(_ config: ContentAnalyticsConfiguration) {
-        stateQueue.async { [weak self] in
-            self?.configuration = config
-        }
+        configManager.updateConfiguration(config)
     }
 
-    /// Get current configuration
     func getCurrentConfiguration() -> ContentAnalyticsConfiguration? {
-        return stateQueue.sync {
-            return configuration
-        }
+        return configManager.getCurrentConfiguration()
     }
 
-    // MARK: - URL Exclusion
-
-    /// Check if a URL should be tracked (not excluded by patterns)
     func shouldTrackUrl(_ url: URL) -> Bool {
-        return stateQueue.sync { () -> Bool in
-            guard let config = configuration else { return true }
-            return !config.shouldExcludeUrl(url)
-        }
+        return configManager.shouldTrackUrl(url)
     }
 
-    /// Check if an experience location should be tracked (not excluded by patterns)
     func shouldTrackExperience(location: String?) -> Bool {
-        return stateQueue.sync { () -> Bool in
-            guard let config = configuration, let location = location else { return true }
-            return !config.shouldExcludeExperience(location: location)
-        }
+        return configManager.shouldTrackExperience(location: location)
     }
 
-    /// Check if an asset location should be tracked (not excluded)
     func shouldTrackAssetLocation(_ location: String?) -> Bool {
-        return stateQueue.sync { () -> Bool in
-            guard let config = configuration else { return true }
-            return !config.shouldExcludeAsset(location: location)
-        }
+        return configManager.shouldTrackAssetLocation(location)
     }
 
-    // MARK: - Experience Definition Storage
-
-    /// Store experience definition for later asset attribution
-    func storeExperienceDefinition(
+    func registerExperienceDefinition(
         experienceId: String,
         assets: [String],
         texts: [ContentItem],
         ctas: [ContentItem]?
     ) {
-        stateQueue.async { [weak self] in
+        stateQueue.sync { [weak self] in
             let definition = ExperienceDefinition(
                 experienceId: experienceId,
                 assets: assets,
@@ -100,40 +72,50 @@ class ContentAnalyticsStateManager {
                 ctas: ctas,
                 sentToFeaturization: false
             )
-            self?.experienceDefinitions[experienceId] = definition
+            
+            // Store in memory cache (handles LRU eviction if at capacity)
+            self?.definitionCache.store(definition)
         }
     }
 
-    /// Retrieve stored experience definition
     func getExperienceDefinition(for experienceId: String) -> ExperienceDefinition? {
         return stateQueue.sync {
-            return experienceDefinitions[experienceId]
+            if let definition = definitionCache.get(experienceId: experienceId) {
+                return definition
+            }
+            
+            Log.warning(
+                label: ContentAnalyticsConstants.LogLabels.STATE_MANAGER,
+                "Experience definition not found for '\(experienceId)'. " +
+                "Call ContentAnalytics.trackExperience() with interactionType: .definition first."
+            )
+            
+            return nil
         }
     }
 
-    // MARK: - Featurization Tracking
-
-    /// Check if an experience definition has been sent to featurization
     func hasExperienceDefinitionBeenSent(for experienceId: String) -> Bool {
         return stateQueue.sync {
-            return experienceDefinitions[experienceId]?.sentToFeaturization ?? false
+            return definitionCache.get(experienceId: experienceId)?.sentToFeaturization ?? false
         }
     }
 
-    /// Mark an experience definition as sent to featurization
     func markExperienceDefinitionAsSent(experienceId: String) {
-        stateQueue.async { [weak self] in
-            self?.experienceDefinitions[experienceId]?.sentToFeaturization = true
+        stateQueue.sync {
+            guard var definition = definitionCache.get(experienceId: experienceId) else {
+                return
+            }
+            
+            definition.sentToFeaturization = true
+            definitionCache.update(definition)
         }
     }
 
-    // MARK: - Reset
-
-    /// Clear all state
     func reset() {
         stateQueue.async { [weak self] in
-            self?.configuration = nil
-            self?.experienceDefinitions.removeAll()
+            guard let self = self else { return }
+            self.configManager.reset()
+            self.definitionCache.removeAll()
         }
     }
 }

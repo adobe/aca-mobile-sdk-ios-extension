@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7EB7CFC6E3BF4D5B8A589838 /* FeaturizationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6B0CFAD759465380E3AB5B /* FeaturizationCoordinator.swift */; };
 		A21BB8B10C1CD6100EA3AF66 /* Pods_AEPContentAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA7AF69D54887DCB413DFEF0 /* Pods_AEPContentAnalytics.framework */; };
 		A66DD5817773972BE0B952DB /* Pods_AEPContentAnalyticsTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7F3F7BE693E5CAE0BBE1269D /* Pods_AEPContentAnalyticsTests.framework */; };
-		B30465C32F28BB45005784CA /* ContentAnalyticsFeaturizationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30465C22F28BB45005784CA /* ContentAnalyticsFeaturizationHelper.swift */; };
 		B304666B2F28F5C4005784CA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B304665C2F28F5C4005784CA /* ContentView.swift */; };
 		B304666C2F28F5C4005784CA /* MobileSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30466542F28F5C4005784CA /* MobileSDK.swift */; };
 		B304666D2F28F5C4005784CA /* TrackedExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30466572F28F5C4005784CA /* TrackedExperienceView.swift */; };
@@ -31,7 +31,13 @@
 		B304667D2F28F5C4005784CA /* general.json in Resources */ = {isa = PBXBuildFile; fileRef = B304664A2F28F5C4005784CA /* general.json */; };
 		B304667E2F28F5C4005784CA /* products.json in Resources */ = {isa = PBXBuildFile; fileRef = B304664B2F28F5C4005784CA /* products.json */; };
 		B30466802F28F5C4005784CA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B30466502F28F5C4005784CA /* Preview Assets.xcassets */; };
-		B30466812F28F8F3005784CA /* AEPContentAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3EFD9152F281A9D00087A14 /* AEPContentAnalytics.framework */; };
+		B3BA6EA42F315FF000F495AF /* LRUCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BA6EA32F315FF000F495AF /* LRUCache.swift */; };
+		B3BA6EAD2F32042700F495AF /* ConfigurationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BA6EA92F32042700F495AF /* ConfigurationManager.swift */; };
+		B3BA6EAE2F32042700F495AF /* DefinitionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BA6EAA2F32042700F495AF /* DefinitionCache.swift */; };
+		B3BA6EB32F3205EA00F495AF /* DefinitionCacheProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BA6EB02F3205EA00F495AF /* DefinitionCacheProtocol.swift */; };
+		B3BA6EB52F3205EA00F495AF /* ConfigurationManaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3BA6EAF2F3205EA00F495AF /* ConfigurationManaging.swift */; };
+		B3D12F642F2B51DB009A056E /* AEPContentAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3EFD9152F281A9D00087A14 /* AEPContentAnalytics.framework */; };
+		B3D12F652F2B51DB009A056E /* AEPContentAnalytics.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B3EFD9152F281A9D00087A14 /* AEPContentAnalytics.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B3EFD9212F281A9D00087A14 /* AEPContentAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3EFD9152F281A9D00087A14 /* AEPContentAnalytics.framework */; };
 		B3EFDB382F28201800087A14 /* RegexExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB332F28201800087A14 /* RegexExtensions.swift */; };
 		B3EFDB392F28201800087A14 /* InteractionTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB2E2F28201800087A14 /* InteractionTypes.swift */; };
@@ -110,13 +116,27 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		B3D12F662F2B51DB009A056E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B3D12F652F2B51DB009A056E /* AEPContentAnalytics.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		227E02EA5DE8E81FF53134DD /* Pods-AEPContentAnalyticsTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AEPContentAnalyticsTests.debug.xcconfig"; path = "Target Support Files/Pods-AEPContentAnalyticsTests/Pods-AEPContentAnalyticsTests.debug.xcconfig"; sourceTree = "<group>"; };
 		561B60A6A67D5A56A4BAD7A3 /* Pods-AEPContentAnalytics.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AEPContentAnalytics.release.xcconfig"; path = "Target Support Files/Pods-AEPContentAnalytics/Pods-AEPContentAnalytics.release.xcconfig"; sourceTree = "<group>"; };
 		695341EA2CD9DB0A37215BF0 /* Pods_ContentAnalyticsDemoApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ContentAnalyticsDemoApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6F6B0CFAD759465380E3AB5B /* FeaturizationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturizationCoordinator.swift; sourceTree = "<group>"; };
 		7F3F7BE693E5CAE0BBE1269D /* Pods_AEPContentAnalyticsTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AEPContentAnalyticsTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8C46CA98D4BB81C9CB1AE3C /* Pods-AEPContentAnalyticsTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AEPContentAnalyticsTests.release.xcconfig"; path = "Target Support Files/Pods-AEPContentAnalyticsTests/Pods-AEPContentAnalyticsTests.release.xcconfig"; sourceTree = "<group>"; };
-		B30465C22F28BB45005784CA /* ContentAnalyticsFeaturizationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/Core/ContentAnalyticsFeaturizationHelper.swift; sourceTree = "<group>"; };
 		B30465C82F28F47E005784CA /* ContentAnalyticsDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ContentAnalyticsDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B304664A2F28F5C4005784CA /* general.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = general.json; sourceTree = "<group>"; };
 		B304664B2F28F5C4005784CA /* products.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = products.json; sourceTree = "<group>"; };
@@ -141,6 +161,11 @@
 		B30466672F28F5C4005784CA /* Luma.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Luma.entitlements; sourceTree = "<group>"; };
 		B30466682F28F5C4005784CA /* LumaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LumaApp.swift; sourceTree = "<group>"; };
 		B30466692F28F5C4005784CA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		B3BA6EA32F315FF000F495AF /* LRUCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRUCache.swift; sourceTree = "<group>"; };
+		B3BA6EA92F32042700F495AF /* ConfigurationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationManager.swift; sourceTree = "<group>"; };
+		B3BA6EAA2F32042700F495AF /* DefinitionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionCache.swift; sourceTree = "<group>"; };
+		B3BA6EAF2F3205EA00F495AF /* ConfigurationManaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationManaging.swift; sourceTree = "<group>"; };
+		B3BA6EB02F3205EA00F495AF /* DefinitionCacheProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionCacheProtocol.swift; sourceTree = "<group>"; };
 		B3EFD9152F281A9D00087A14 /* AEPContentAnalytics.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AEPContentAnalytics.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3EFD9202F281A9D00087A14 /* AEPContentAnalyticsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AEPContentAnalyticsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3EFDB042F28201800087A14 /* ContentAnalytics+PublicAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentAnalytics+PublicAPI.swift"; sourceTree = "<group>"; };
@@ -216,7 +241,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B30466812F28F8F3005784CA /* AEPContentAnalytics.framework in Frameworks */,
+				B3D12F642F2B51DB009A056E /* AEPContentAnalytics.framework in Frameworks */,
 				D61DC138482C4C32E03766F0 /* Pods_ContentAnalyticsDemoApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -353,6 +378,15 @@
 			path = ContentAnalyticsDemoApp;
 			sourceTree = "<group>";
 		};
+		B3BA6EB22F3205EA00F495AF /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				B3BA6EAF2F3205EA00F495AF /* ConfigurationManaging.swift */,
+				B3BA6EB02F3205EA00F495AF /* DefinitionCacheProtocol.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
 		B3EFD90B2F281A9D00087A14 = {
 			isa = PBXGroup;
 			children = (
@@ -452,6 +486,7 @@
 			isa = PBXGroup;
 			children = (
 				B3EFDB142F28201800087A14 /* ContentAnalyticsOrchestrator.swift */,
+				6F6B0CFAD759465380E3AB5B /* FeaturizationCoordinator.swift */,
 				B3EFDB152F28201800087A14 /* EdgeEventDispatcher.swift */,
 				B3EFDB162F28201800087A14 /* PrivacyValidator.swift */,
 			);
@@ -509,6 +544,8 @@
 		B3EFDB272F28201800087A14 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				B3BA6EA92F32042700F495AF /* ConfigurationManager.swift */,
+				B3BA6EAA2F32042700F495AF /* DefinitionCache.swift */,
 				B3EFDB262F28201800087A14 /* ContentAnalyticsStateManager.swift */,
 			);
 			path = Core;
@@ -524,6 +561,7 @@
 		B3EFDB292F28201800087A14 /* State */ = {
 			isa = PBXGroup;
 			children = (
+				B3BA6EB22F3205EA00F495AF /* Protocols */,
 				B3EFDB252F28201800087A14 /* Configuration */,
 				B3EFDB272F28201800087A14 /* Core */,
 				B3EFDB282F28201800087A14 /* Persistence */,
@@ -554,6 +592,7 @@
 		B3EFDB342F28201800087A14 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				B3BA6EA32F315FF000F495AF /* LRUCache.swift */,
 				B3EFDB312F28201800087A14 /* ConfigurationValidation.swift */,
 				B3EFDB322F28201800087A14 /* ContentAnalyticsUtilities.swift */,
 				B3EFDB332F28201800087A14 /* RegexExtensions.swift */,
@@ -572,7 +611,6 @@
 		B3EFDB372F28201800087A14 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				B30465C22F28BB45005784CA /* ContentAnalyticsFeaturizationHelper.swift */,
 				B3EFDB062F28201800087A14 /* API */,
 				B3EFDB092F28201800087A14 /* Constants */,
 				B3EFDB0C2F28201800087A14 /* Error */,
@@ -713,6 +751,7 @@
 				B30465C52F28F47E005784CA /* Frameworks */,
 				B30465C62F28F47E005784CA /* Resources */,
 				1A36383D4E2CF46A568D3FDA /* [CP] Embed Pods Frameworks */,
+				B3D12F662F2B51DB009A056E /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -842,9 +881,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ContentAnalyticsDemoApp/Pods-ContentAnalyticsDemoApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ContentAnalyticsDemoApp/Pods-ContentAnalyticsDemoApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -903,9 +946,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AEPContentAnalyticsTests/Pods-AEPContentAnalyticsTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AEPContentAnalyticsTests/Pods-AEPContentAnalyticsTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -968,10 +1015,13 @@
 				B3EFDB382F28201800087A14 /* RegexExtensions.swift in Sources */,
 				B3EFDB392F28201800087A14 /* InteractionTypes.swift in Sources */,
 				B3EFDB3A2F28201800087A14 /* ConfigurationValidation.swift in Sources */,
+				B3BA6EB32F3205EA00F495AF /* DefinitionCacheProtocol.swift in Sources */,
+				B3BA6EB52F3205EA00F495AF /* ConfigurationManaging.swift in Sources */,
 				B3EFDB3B2F28201800087A14 /* BatchCoordinator.swift in Sources */,
 				B3EFDB3C2F28201800087A14 /* ContentAnalytics.swift in Sources */,
 				B3EFDB3D2F28201800087A14 /* AssetMetrics.swift in Sources */,
 				B3EFDB3E2F28201800087A14 /* ContentItem.swift in Sources */,
+				B3BA6EA42F315FF000F495AF /* LRUCache.swift in Sources */,
 				B3EFDB3F2F28201800087A14 /* DirectHitProcessor.swift in Sources */,
 				B3EFDB402F28201800087A14 /* BatchingConfiguration.swift in Sources */,
 				B3EFDB412F28201800087A14 /* Event+ContentAnalytics.swift in Sources */,
@@ -981,13 +1031,13 @@
 				B3EFDB452F28201800087A14 /* AssetTrackingEventPayload.swift in Sources */,
 				B3EFDB462F28201800087A14 /* ExperienceMetrics.swift in Sources */,
 				B3EFDB472F28201800087A14 /* XDMEventBuilder.swift in Sources */,
-				B30465C32F28BB45005784CA /* ContentAnalyticsFeaturizationHelper.swift in Sources */,
 				B3EFDB482F28201800087A14 /* ExperienceTrackingEventPayload.swift in Sources */,
 				B3EFDB492F28201800087A14 /* FeaturizationHitProcessor.swift in Sources */,
 				B3EFDB4A2F28201800087A14 /* ContentAnalyticsConstants.swift in Sources */,
 				B3EFDB4B2F28201800087A14 /* ExperienceFeaturizationService.swift in Sources */,
 				B3EFDB4C2F28201800087A14 /* EdgeEventDispatcher.swift in Sources */,
 				B3EFDB4D2F28201800087A14 /* ContentAnalyticsOrchestrator.swift in Sources */,
+				7EB7CFC6E3BF4D5B8A589838 /* FeaturizationCoordinator.swift in Sources */,
 				B3EFDB4E2F28201800087A14 /* BatchHit.swift in Sources */,
 				B3EFDB4F2F28201800087A14 /* ContentAnalytics+PublicAPI.swift in Sources */,
 				B3EFDB502F28201800087A14 /* FeaturizationHit.swift in Sources */,
@@ -995,6 +1045,8 @@
 				B3EFDB522F28201800087A14 /* PrivacyValidator.swift in Sources */,
 				B3EFDB532F28201800087A14 /* ContentAnalyticsUtilities.swift in Sources */,
 				B3EFDB542F28201800087A14 /* ContentAnalyticsFactory.swift in Sources */,
+				B3BA6EAD2F32042700F495AF /* ConfigurationManager.swift in Sources */,
+				B3BA6EAE2F32042700F495AF /* DefinitionCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1053,14 +1105,15 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BC7667C1AFDE95E9BE473776 /* Pods-ContentAnalyticsDemoApp.debug.xcconfig */;
 			buildSettings = {
-			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-			CODE_SIGN_STYLE = Automatic;
-			CURRENT_PROJECT_VERSION = 1;
-			ENABLE_PREVIEWS = YES;
-			ENABLE_USER_SCRIPT_SANDBOXING = NO;
-			GENERATE_INFOPLIST_FILE = YES;
-			INFOPLIST_FILE = ContentAnalyticsDemoApp/Info.plist;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QX6R7FLJDW;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ContentAnalyticsDemoApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1083,14 +1136,15 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C89ADF38F8EA03F2443F0A95 /* Pods-ContentAnalyticsDemoApp.release.xcconfig */;
 			buildSettings = {
-			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-			CODE_SIGN_STYLE = Automatic;
-			CURRENT_PROJECT_VERSION = 1;
-			ENABLE_PREVIEWS = YES;
-			ENABLE_USER_SCRIPT_SANDBOXING = NO;
-			GENERATE_INFOPLIST_FILE = YES;
-			INFOPLIST_FILE = ContentAnalyticsDemoApp/Info.plist;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QX6R7FLJDW;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ContentAnalyticsDemoApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

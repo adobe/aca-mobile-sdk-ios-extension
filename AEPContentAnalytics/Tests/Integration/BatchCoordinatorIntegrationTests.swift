@@ -86,8 +86,7 @@ final class BatchCoordinatorIntegrationTests: ContentAnalyticsIntegrationTestBas
         let status = coordinator.getBatchStatus()
         XCTAssertEqual(status.assetCount, 1, "Should track 1 asset event in batch")
 
-        // Note: Full processing chain (PersistentHitQueue → DirectHitProcessor → callback)
-        // is tested in unit tests due to async complexity
+        // Full chain tested in unit tests (async complexity)
     }
 
     // NOTE: Batch size trigger and crash recovery tests removed
@@ -144,7 +143,7 @@ final class BatchCoordinatorIntegrationTests: ContentAnalyticsIntegrationTestBas
         XCTAssertEqual(status.assetCount, 2, "Should track 2 asset events before clear")
 
         // When - Clear the coordinator
-        coordinator.clear()
+        coordinator.clearPendingBatch()
 
         // Wait for clear to complete
         Thread.sleep(forTimeInterval: 0.5)

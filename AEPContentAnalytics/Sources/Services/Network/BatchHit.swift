@@ -20,9 +20,7 @@ enum BatchHitType: String, Codable {
     case experience
 }
 
-/// Batch of events persisted to disk for crash recovery
-/// Note: This struct is currently unused (we persist individual events)
-/// but kept for potential future use
+/// Batch of events persisted to disk
 struct BatchHit: Codable {
     let hitType: BatchHitType
     let events: [SerializableEvent]
@@ -44,7 +42,6 @@ struct BatchHit: Codable {
         self.attemptCount = attemptCount
     }
 
-    /// Creates a copy with incremented attempt count (for retry tracking)
     func incrementingAttempt() -> BatchHit {
         return BatchHit(
             hitType: hitType,

@@ -14,38 +14,16 @@ import AEPCore
 import AEPServices
 import Foundation
 
-/// Coordinates event batching, disk persistence, and flush triggers.
-/// Manages counters and timers to determine when to dispatch accumulated events.
 class BatchCoordinator: BatchCoordinating {
 
-    // MARK: - Internal Types
-
-    /// Callback type for when asset events are ready to be processed
     typealias AssetProcessingCallback = ([Event]) -> Void
-
-    /// Callback type for when experience events are ready to be processed
     typealias ExperienceProcessingCallback = ([Event]) -> Void
 
-    // MARK: - Dependencies
-
-    /// Persistent queue for asset events (crash recovery)
     private let assetHitQueue: PersistentHitQueue
-
-    /// Persistent queue for experience events (crash recovery)
     private let experienceHitQueue: PersistentHitQueue
-
-    /// Hit processor for reading persisted asset events
     private let assetHitProcessor: DirectHitProcessor
-
-    /// Hit processor for reading persisted experience events
     private let experienceHitProcessor: DirectHitProcessor
-
-    /// State manager for configuration access
     private let state: ContentAnalyticsStateManager
-
-    // MARK: - Batching State
-
-    /// Current batching configuration
     private var configuration: BatchingConfiguration
 
     /// Count of asset events in current batch
@@ -57,8 +35,8 @@ class BatchCoordinator: BatchCoordinating {
     /// Time when first event was added to current batch
     private var firstTrackingTime: Date?
 
-    /// Timer for automatic batch flushing
-    private var batchTimer: Timer?
+    /// Work item for automatic batch flushing (replaces Timer to avoid cross-queue issues)
+    private var batchFlushWorkItem: DispatchWorkItem?
 
     // MARK: - Processing Callbacks
 
@@ -70,7 +48,6 @@ class BatchCoordinator: BatchCoordinating {
 
     // MARK: - Thread Safety
 
-    /// Serial queue for thread-safe batch operations
     private let batchQueue = DispatchQueue(label: "com.adobe.contentanalytics.batchcoordinator", qos: .utility)
 
     // MARK: - Initialization
@@ -110,8 +87,13 @@ class BatchCoordinator: BatchCoordinating {
     }
 
     deinit {
-        flush()
-        batchTimer?.invalidate()
+        // Cancel any pending flush timer
+        batchFlushWorkItem?.cancel()
+        // Note: Events are already persisted to disk, so async flush is safe
+        // If deallocation happens before flush completes, crash recovery will handle it
+        batchQueue.async { [weak self] in
+            self?.performFlush()
+        }
     }
 
     // MARK: - Public API
@@ -147,8 +129,7 @@ class BatchCoordinator: BatchCoordinating {
         }
     }
 
-    /// Clear pending batch without sending (e.g., on identity reset)
-    func clear() {
+    func clearPendingBatch() {
         batchQueue.async { [weak self] in
             guard let self = self else { return }
             let assetCount = self.assetEventCount
@@ -157,8 +138,10 @@ class BatchCoordinator: BatchCoordinating {
             self.assetEventCount = 0
             self.experienceEventCount = 0
             self.firstTrackingTime = nil
-            self.batchTimer?.invalidate()
-            self.batchTimer = nil
+            
+            // Cancel scheduled flush
+            self.batchFlushWorkItem?.cancel()
+            self.batchFlushWorkItem = nil
 
             // Also clear persisted events
             self.assetHitProcessor.clear()
@@ -282,9 +265,9 @@ class BatchCoordinator: BatchCoordinating {
             performFlush()
         }
 
-        // Update timer interval if it changed
+        // Update flush interval if it changed and we have a pending flush
         if newConfiguration.flushInterval != oldConfiguration.flushInterval &&
-           batchTimer != nil {
+           batchFlushWorkItem != nil {
             scheduleBatchFlush()
         }
     }
@@ -299,36 +282,33 @@ class BatchCoordinator: BatchCoordinating {
         assetEventCount = 0
         experienceEventCount = 0
         firstTrackingTime = nil
-
-        DispatchQueue.main.async { [weak self] in
-            self?.batchTimer?.invalidate()
-            self?.batchTimer = nil
-        }
+        
+        // Cancel any pending flush
+        batchFlushWorkItem?.cancel()
+        batchFlushWorkItem = nil
 
         // Send accumulated events from DirectHitProcessor
-        let assetEvents = assetHitProcessor.processAccumulatedEvents()
-        let experienceEvents = experienceHitProcessor.processAccumulatedEvents()
-
-        // Mark events as dispatched after sending to Edge
-        // This allows disk cleanup on next PersistentHitQueue processing cycle
-        if !assetEvents.isEmpty {
-            assetHitProcessor.markEventsAsDispatched(assetEvents)
-        }
-        if !experienceEvents.isEmpty {
-            experienceHitProcessor.markEventsAsDispatched(experienceEvents)
-        }
+        // Disk is cleared during processHit() - Edge guarantees delivery from here
+        _ = assetHitProcessor.processAccumulatedEvents()
+        _ = experienceHitProcessor.processAccumulatedEvents()
     }
 
-    /// Schedule automatic batch flush timer
+    /// Schedule automatic batch flush using dispatch queue (no cross-queue timer issues)
     private func scheduleBatchFlush() {
         let interval = configuration.flushInterval
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            self.batchTimer?.invalidate()
-            self.batchTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
-                self?.flush()
-            }
+        
+        // Cancel any existing scheduled flush
+        batchFlushWorkItem?.cancel()
+        
+        // Create new work item for flush
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.performFlush()
         }
+        
+        batchFlushWorkItem = workItem
+        
+        // Schedule on same queue to avoid cross-queue issues
+        batchQueue.asyncAfter(deadline: .now() + interval, execute: workItem)
     }
 
     // MARK: - Persistence

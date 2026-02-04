@@ -161,7 +161,7 @@ final class ContentAnalyticsOrchestratorConfigurationTests: ContentAnalyticsOrch
             texts: exp1Text,
             ctas: nil
         )
-        mockStateManager.storeExperienceDefinition(
+        mockStateManager.registerExperienceDefinition(
             experienceId: exp1Id,
             assets: exp1Assets,
             texts: exp1Text,
@@ -175,7 +175,7 @@ final class ContentAnalyticsOrchestratorConfigurationTests: ContentAnalyticsOrch
             texts: exp2Text,
             ctas: nil
         )
-        mockStateManager.storeExperienceDefinition(
+        mockStateManager.registerExperienceDefinition(
             experienceId: exp2Id,
             assets: exp2Assets,
             texts: exp2Text,
@@ -247,8 +247,7 @@ final class ContentAnalyticsOrchestratorConfigurationTests: ContentAnalyticsOrch
         XCTAssertEqual(mockBatchCoordinator.assetEvents.count, 1, "Event should be in batch")
 
         // When - Disable batching via orchestrator configuration update
-        // Note: Don't update mockStateManager first - orchestrator needs to detect the change
-        // from the current state (true) to the new config (false)
+        // Don't update mockStateManager - orchestrator needs to detect the change
         config.batchingEnabled = false
         orchestrator.updateConfiguration(config)
 

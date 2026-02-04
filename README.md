@@ -104,6 +104,7 @@ make test
 
 - **[Getting Started](Documentation/getting-started.md)** - Installation and basic setup
 - **[API Reference](Documentation/api-reference.md)** - Complete API documentation
+- **[Experience Tracking Guide](Documentation/EXPERIENCE_TRACKING_GUIDE.md)** - 🔥 **Required reading** for experience tracking
 - **[Advanced Configuration](Documentation/advanced-configuration.md)** - Batching, privacy, performance
 - **[Troubleshooting](Documentation/troubleshooting.md)** - Common issues and solutions
 - **[Crash Recovery](Documentation/crash-recovery.md)** - Persistent queuing and crash recovery

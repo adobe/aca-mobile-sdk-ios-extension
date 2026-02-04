@@ -20,18 +20,13 @@ protocol ContentAnalyticsEventDispatcher: AnyObject {
     func dispatch(event: Event)
 }
 
-/// Dispatches events via ExtensionRuntime to the AEP event hub.
 class EdgeEventDispatcher: ContentAnalyticsEventDispatcher {
     private let runtime: ExtensionRuntime
 
-    /// Initializes the dispatcher with the provided extension runtime.
-    /// - Parameter runtime: The `ExtensionRuntime` instance from the AEP SDK.
     init(runtime: ExtensionRuntime) {
         self.runtime = runtime
     }
 
-    /// Dispatches an event to the AEP event hub.
-    /// - Parameter event: The `Event` to be dispatched.
     func dispatch(event: Event) {
         Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "→ Edge: \(event.name)")
 

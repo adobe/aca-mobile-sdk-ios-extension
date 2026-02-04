@@ -11,6 +11,7 @@
  */
 
 @testable import AEPContentAnalytics
+import AEPServices
 import XCTest
 
 /// Tests for state manager: configuration updates, experience definitions, exclusion patterns, and thread safety.
@@ -40,8 +41,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         config.batchingEnabled = batchingEnabled
         config.excludedAssetUrlsRegexp = excludedAssetUrlsRegexp
         config.excludedExperienceLocationsRegexp = excludedExperienceLocationsRegexp
-        // Note: compileUrlPatterns() and compileExperienceLocationPatterns() are called in init()
-        // and when patterns are set, so no need to call them explicitly
+        // Pattern compilation happens in init()
         return config
     }
 
@@ -127,7 +127,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
 
     // MARK: - Experience Definition Storage Tests
 
-    func testStoreExperienceDefinition_NewExperience_StoresSuccessfully() {
+    func testStoreExperienceDefinition_NewExperience() {
         // Given
         let experienceId = "exp-123"
         let assets = ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
@@ -135,7 +135,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         let ctas = [ContentItem(value: "Click Here")]
 
         // When
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: assets,
             texts: texts,
@@ -165,7 +165,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         let assets = ["https://example.com/asset.jpg"]
         let texts = [ContentItem(value: "Text")]
 
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: assets,
             texts: texts,
@@ -206,7 +206,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         let texts = [ContentItem(value: "Text")]
 
         // Store initial
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: initialAssets,
             texts: texts,
@@ -221,7 +221,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         wait(for: [expectation], timeout: 0.5)
 
         // When - Store updated
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: updatedAssets,
             texts: texts,
@@ -247,7 +247,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         let texts = [ContentItem(value: "Text")]
 
         // When
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: [],
             texts: texts,
@@ -273,7 +273,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
 
         // When
         for i in 0..<experienceCount {
-            stateManager.storeExperienceDefinition(
+            stateManager.registerExperienceDefinition(
                 experienceId: "exp-\(i)",
                 assets: ["https://example.com/asset-\(i).jpg"],
                 texts: [ContentItem(value: "Text \(i)")],
@@ -304,7 +304,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
     func testMarkExperienceDefinitionAsSent_FirstTime_MarksAsSent() {
         // Given
         let experienceId = "exp-sent"
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: ["https://example.com/asset.jpg"],
             texts: [ContentItem(value: "Text")],
@@ -336,7 +336,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
     func testHasExperienceDefinitionBeenSent_SentExperience_ReturnsTrue() {
         // Given
         let experienceId = "exp-check-sent"
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: ["https://example.com/asset.jpg"],
             texts: [ContentItem(value: "Text")],
@@ -361,7 +361,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
     func testHasExperienceDefinitionBeenSent_NewExperience_ReturnsFalse() {
         // Given
         let experienceId = "exp-not-sent"
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: ["https://example.com/asset.jpg"],
             texts: [ContentItem(value: "Text")],
@@ -393,7 +393,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
     func testMarkExperienceDefinitionAsSent_Deduplication_PreventsDuplicates() {
         // Given
         let experienceId = "exp-dedup"
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: experienceId,
             assets: ["https://example.com/asset.jpg"],
             texts: [ContentItem(value: "Text")],
@@ -515,7 +515,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         let config = createTestConfiguration()
         stateManager.updateConfiguration(config)
 
-        stateManager.storeExperienceDefinition(
+        stateManager.registerExperienceDefinition(
             experienceId: "exp-1",
             assets: ["https://example.com/asset.jpg"],
             texts: [ContentItem(value: "Text")],
@@ -552,7 +552,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
     func testReset_MultipleExperiences_ClearsAll() {
         // Given - Store multiple experiences
         for i in 0..<10 {
-            stateManager.storeExperienceDefinition(
+            stateManager.registerExperienceDefinition(
                 experienceId: "exp-\(i)",
                 assets: ["https://example.com/asset-\(i).jpg"],
                 texts: [ContentItem(value: "Text \(i)")],
@@ -619,7 +619,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         // When - Concurrent experience storage from multiple threads
         for i in 0..<iterations {
             DispatchQueue.global(qos: .userInitiated).async {
-                self.stateManager.storeExperienceDefinition(
+                self.stateManager.registerExperienceDefinition(
                     experienceId: "exp-\(i)",
                     assets: ["https://example.com/asset-\(i).jpg"],
                     texts: [ContentItem(value: "Text \(i)")],
@@ -657,7 +657,7 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
                 switch i % 4 {
                 case 0:
                     // Store experience
-                    self.stateManager.storeExperienceDefinition(
+                    self.stateManager.registerExperienceDefinition(
                         experienceId: "exp-\(i)",
                         assets: ["https://example.com/asset.jpg"],
                         texts: [ContentItem(value: "Text")],

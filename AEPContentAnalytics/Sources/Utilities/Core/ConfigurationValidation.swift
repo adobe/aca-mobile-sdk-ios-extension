@@ -51,7 +51,7 @@ struct ConfigurationValidationRules {
         var errors: [ConfigurationValidationError] = []
 
         // Validate batch size
-        if config.maxBatchSize < 1 || config.maxBatchSize > 100 {
+        if config.maxBatchSize < ContentAnalyticsConstants.MIN_BATCH_SIZE || config.maxBatchSize > ContentAnalyticsConstants.MAX_BATCH_SIZE {
             errors.append(.invalidBatchSize(config.maxBatchSize))
         }
 

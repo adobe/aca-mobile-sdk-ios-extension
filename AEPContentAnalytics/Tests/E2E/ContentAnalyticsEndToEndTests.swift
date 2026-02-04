@@ -145,8 +145,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         // Simulate event coming to extension
         mockRuntime.simulateComingEvents(event)
 
-        // Note: No sleep here - test will use waitForEdgeEvents() to wait for actual results
-        // This allows batching to work naturally with async processing
+        // waitForEdgeEvents() handles async timing
     }
 
     private func registerExperienceAndWait(assets: [ContentItem], texts: [ContentItem], ctas: [ContentItem]?, location: String) -> String {
@@ -208,7 +207,6 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         )
 
         mockRuntime.simulateComingEvents(event)
-        // Note: No sleep here - test will use waitForEdgeEvents() to wait for actual results
     }
 
     private func waitForEdgeEvents(count: Int, timeout: TimeInterval = 10.0) -> [Event] {
@@ -350,10 +348,11 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
     // MARK: Location-Based Grouping Tests
 
     func testBatchingOn_SameAssetNoLocation_AggregatesMetrics() {
-        // Given - Batching enabled
+        // Given - Batching enabled with short flush interval for testing
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
+            "contentanalytics.batchFlushInterval": 0.5,  // Use shorter interval for faster tests
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -362,10 +361,9 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: nil)
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: nil)
 
-        Thread.sleep(forTimeInterval: 1.5)
-
         // Then - Should aggregate into 1 event with viewCount = 2
-        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
+        // XCTestExpectation will wait for batching to flush (up to timeout)
+        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 5.0)
         XCTAssertEqual(edgeEvents.count, 1, "No location: Should aggregate into single event")
 
         let xdm = edgeEvents[0].data?["xdm"] as? [String: Any]
@@ -386,10 +384,11 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
     }
 
     func testBatchingOn_SameAssetSameLocation_AggregatesMetrics() {
-        // Given - Batching enabled
+        // Given - Batching enabled with short flush interval for testing
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
+            "contentanalytics.batchFlushInterval": 0.5,
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -398,10 +397,9 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: "catalog")
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: "catalog")
 
-        Thread.sleep(forTimeInterval: 1.5)
-
         // Then - Should aggregate into 1 event with viewCount = 2
-        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
+        // XCTestExpectation will wait for batching to flush
+        let edgeEvents = waitForEdgeEvents(count: 1, timeout: 5.0)
         XCTAssertEqual(edgeEvents.count, 1, "Same location: Should aggregate into single event")
 
         let xdm = edgeEvents[0].data?["xdm"] as? [String: Any]
@@ -534,8 +532,9 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: "catalog")
         trackAssetAndWait(url: "https://example.com/product.jpg", interaction: .view, location: "catalog")
 
+        Thread.sleep(forTimeInterval: 1.5)
+
         // Then - Should send 1 aggregated Edge event
-        // waitForEdgeEvents polls for events with proper expectation tracking
         let edgeEvents = waitForEdgeEvents(count: 1, timeout: 10.0)
         XCTAssertGreaterThan(edgeEvents.count, 0, "Batching: Should send at least 1 aggregated event")
 
@@ -581,6 +580,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
+            "contentanalytics.batchFlushInterval": 0.5,
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -589,7 +589,6 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         trackAssetAndWait(url: "https://example.com/image4.jpg", interaction: .view, location: "gallery")
 
         // Even with batching, different assets send separate events for proper CJA breakdown
-        // waitForEdgeEvents polls for events with proper expectation tracking  
         let batchedEvents = waitForEdgeEvents(count: 2, timeout: 10.0)
         XCTAssertEqual(batchedEvents.count, 2, "Batching: 2 events for 2 different assets (enables CJA asset-level analysis)")
 
@@ -981,8 +980,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
     // MARK: - Batching Delayed Flush Test
 
     func testBatching_DelayedFlush_EventsAggregatedCorrectly() {
-        // Verifies that config changes can trigger flush of pending batched events
-        // Note: Tests in-memory flush, not crash recovery (see integration tests for that)
+        // Config changes trigger flush (in-memory, not crash recovery)
 
         // Track 2 events with high batch threshold (won't auto-flush)
         sendConfiguration([

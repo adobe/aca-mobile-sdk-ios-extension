@@ -104,17 +104,20 @@ ContentAnalytics.trackAssetClick(
 ```swift
 // 1. Register the experience
 let experienceId = ContentAnalytics.registerExperience(
-    assetURLs: ["https://example.com/product.jpg"],
-    texts: ["Product Name", "Price: $99.99", "In Stock"],
-    ctas: ["Add to Cart", "Save for Later"],
-    experienceLocation: "product.detail"
+    assets: [ContentItem(value: "https://example.com/product.jpg", styles: [:])],
+    texts: [
+        ContentItem(value: "Product Name", styles: ["role": "headline"]),
+        ContentItem(value: "$99.99", styles: ["role": "price"])
+    ],
+    ctas: [ContentItem(value: "Add to Cart", styles: ["enabled": true])]
 )
 
 // 2. Track interactions
-ContentAnalytics.trackExperienceView(experienceId: experienceId)
+ContentAnalytics.trackExperienceView(experienceId: experienceId, experienceLocation: "product.detail")
 
 ContentAnalytics.trackExperienceClick(
     experienceId: experienceId,
+    experienceLocation: "product.detail",
     additionalData: ["element": "addToCart"]
 )
 ```

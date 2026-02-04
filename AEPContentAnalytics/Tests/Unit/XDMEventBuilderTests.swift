@@ -138,8 +138,7 @@ class XDMEventBuilderTests: XCTestCase {
     }
 
     // MARK: - Experience Definition Event Tests
-    // Note: Experience definitions are now handled by the external featurization service
-    // and are NOT sent to AEP/Edge Network, so there are no XDM definition event tests here.
+    // Definitions go to featurization service, not Edge - no XDM tests here
 
     // MARK: - Experience Interaction Event Tests
 

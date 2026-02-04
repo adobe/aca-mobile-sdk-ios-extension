@@ -12,18 +12,15 @@
 
 import Foundation
 
-/// Configuration for batching behavior (used for both assets and experiences)
-///
-/// Note: ContentAnalytics only batches Edge Network events by design.
-/// There is no need for an event type filter - all events are Edge events.
+/// Configuration for batching behavior
 struct BatchingConfiguration {
     let maxBatchSize: Int
     let flushInterval: TimeInterval
     let maxWaitTime: TimeInterval
 
     static let `default` = BatchingConfiguration(
-        maxBatchSize: 10,
-        flushInterval: 2.0,
-        maxWaitTime: 5.0
+        maxBatchSize: ContentAnalyticsConstants.DEFAULT_BATCH_SIZE,
+        flushInterval: ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL,
+        maxWaitTime: ContentAnalyticsConstants.DEFAULT_MAX_WAIT_TIME
     )
 }

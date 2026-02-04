@@ -75,7 +75,7 @@ class FeaturizationHitProcessor: HitProcessing {
         let datastreamId = hit.content.datastreamId
         guard !datastreamId.isEmpty else {
             Log.error(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Cannot check experience - datastreamId is empty | ID: \(hit.experienceId)")
-            completion(false) // Don't retry - configuration error
+            completion(true) // Drop hit - configuration error, won't be fixed by retrying
             return
         }
 
@@ -110,7 +110,6 @@ class FeaturizationHitProcessor: HitProcessing {
         }
     }
 
-    /// Registers experience with featurization service via JAG Gateway
     private func registerExperience(hit: FeaturizationHit, entityId: String, completion: @escaping (Bool) -> Void) {
         // Validate datastreamId is present (required field)
         let datastreamId = hit.content.datastreamId
@@ -134,7 +133,7 @@ class FeaturizationHitProcessor: HitProcessing {
             switch result {
             case .success:
                 // Registration successful
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience registered successfully | ID: \(hit.experienceId)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "✅ Featurization sent (id=\(hit.experienceId))")
                 self.entityRetryIntervalMapping[entityId] = nil
                 completion(true) // Remove from queue
 
@@ -160,23 +159,14 @@ class FeaturizationHitProcessor: HitProcessing {
         }
     }
 
-    /// Handles registration failure - determines if recoverable
     private func handleRegistrationFailure(error: Error, hit: FeaturizationHit, entityId: String, completion: @escaping (Bool) -> Void) {
         handleFeaturizationFailure(error: error, hit: hit, entityId: entityId, operation: .register, completion: completion)
     }
 
-    /// Handles check failure - determines if recoverable
     private func handleCheckFailure(error: Error, hit: FeaturizationHit, entityId: String, completion: @escaping (Bool) -> Void) {
         handleFeaturizationFailure(error: error, hit: hit, entityId: entityId, operation: .check, completion: completion)
     }
 
-    /// Common error handling logic for featurization operations
-    /// - Parameters:
-    ///   - error: The error that occurred
-    ///   - hit: The featurization hit being processed
-    ///   - entityId: The unique entity identifier for retry tracking
-    ///   - operation: The type of operation (register or check)
-    ///   - completion: Completion handler with true to remove from queue, false to retry
     private func handleFeaturizationFailure(
         error: Error,
         hit: FeaturizationHit,

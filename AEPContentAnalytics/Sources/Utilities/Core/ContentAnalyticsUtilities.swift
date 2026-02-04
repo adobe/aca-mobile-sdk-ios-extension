@@ -97,11 +97,6 @@ enum ContentAnalyticsUtilities {
     }
 
     /// Processes extras from multiple events, merging or creating "all" array on conflicts
-    /// - Parameters:
-    ///   - extrasArray: Array of extras dictionaries from events
-    ///   - entityId: Entity identifier for logging
-    ///   - extrasType: Type name for logging (e.g., "assetExtras")
-    /// - Returns: Merged extras or "all" array if conflicts detected
     static func processExtras(
         _ extrasArray: [[String: Any]],
         for entityId: String,
