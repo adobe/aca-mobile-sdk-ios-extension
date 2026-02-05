@@ -322,10 +322,8 @@ Managed through Adobe Data Collection:
 | `maxBatchSize` | Integer | `10` | Max events per batch |
 | `flushInterval` | Double | `2.0` | Flush interval (seconds) |
 | `trackExperiences` | Boolean | `true` | Enable experiences |
-| `featurizationServiceUrl` | String | - | ML service URL |
-| `excludedAssetLocations` | Array | `[]` | Asset locations to exclude (exact match) |
+| `excludedAssetLocationsRegexp` | String | - | Asset location regex pattern (e.g., `"^(debug\|test).*"`) |
 | `excludedAssetUrlsRegexp` | String | - | Asset URL regex pattern (e.g., `".*\\.gif$\|.*\\.svg$"`) |
-| `excludedExperienceLocations` | Array | `[]` | Experience locations to exclude (exact match) |
 | `excludedExperienceLocationsRegexp` | String | - | Experience location regex pattern (e.g., `"^test\\..*\|^dev\\..*"`) |
 | `debugLogging` | Boolean | `false` | Verbose logging |
 

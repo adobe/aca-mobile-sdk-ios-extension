@@ -5,7 +5,6 @@
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `contentanalytics.configId` | String | - | Datastream override |
-| `contentanalytics.region` | String | auto | Featurization region |
 | `contentanalytics.trackExperiences` | Bool | `true` | Enable experience tracking |
 | `contentanalytics.batchingEnabled` | Bool | `true` | Enable batching |
 | `contentanalytics.maxBatchSize` | Int | `10` | Events before flush (1-100) |
@@ -42,24 +41,6 @@ If `contentanalytics.configId` is not set, uses `edge.configId`.
 
 ---
 
-## Region
-
-Auto-detected from `edge.domain`:
-
-| Domain | Region |
-|--------|--------|
-| `edge.adobedc.net` | `va7` |
-| `edge-eu.adobedc.net` | `irl1` |
-| `edge-au.adobedc.net` | `aus3` |
-
-For CNAME setups, set explicitly:
-
-```json
-{ "contentanalytics.region": "irl1" }
-```
-
----
-
 ## Batching
 
 Flush triggers:
@@ -80,6 +61,8 @@ Disable for immediate sends:
 ```json
 { "contentanalytics.batchingEnabled": false }
 ```
+
+> **Note:** Batching only affects network delivery. Features like asset attribution, experience tracking, and featurization work the same whether batching is enabled or disabled.
 
 ---
 
@@ -157,13 +140,17 @@ Payload sent:
 
 ---
 
-## Performance
+## Tuning Batch Settings
 
-| App Type | maxBatchSize | flushInterval |
-|----------|--------------|---------------|
-| Gaming/social | 20-50 | 5s |
-| E-commerce | 10-20 | 3s |
-| Real-time | 3-5 | 0.5s |
+The default settings (`maxBatchSize: 10`, `flushInterval: 2s`) work well for most apps. Adjust based on your event volume:
+
+| Events per Minute | maxBatchSize | flushInterval | Notes |
+|-------------------|--------------|---------------|-------|
+| < 10 | 10 (default) | 2s (default) | Default works well |
+| 10-50 | 15-25 | 3s | Reduces network calls |
+| > 50 | 25-50 | 5s | High-volume optimization |
+
+**Trade-off:** Larger batches reduce network overhead but increase latency before data appears in reporting.
 
 ---
 

@@ -2,11 +2,11 @@
 
 ## Overview
 
-Content Analytics uses `PersistentHitQueue` to protect against data loss during the batching window (0-5 seconds). Events are written to disk immediately and cleared during crash recovery after being accumulated in memory.
+Content Analytics uses `PersistentHitQueue` to protect against data loss during the batching window (0-5 seconds). Events are written to disk immediately when tracked. On next app launch, any persisted events are recovered from disk into memory for processing, then cleared from disk (no data loss - events are safely in memory before disk cleanup).
 
 ## How It Works
 
-```
+```00% hone
 User tracks event
   └─> Event added to memory + disk (crash-safe)
       │
@@ -46,7 +46,7 @@ func performFlush()
 **Responsibilities:**
 - Implements `HitProcessing` protocol for `PersistentHitQueue` integration
 - Accumulates events in memory for fast batching
-- Clears events from disk during crash recovery (after accumulating in memory)
+- On recovery: loads events from disk into memory, then clears disk (no data loss)
 
 **Event Lifecycle:**
 ```swift
@@ -132,15 +132,6 @@ Crash:  ⚡ App terminated
 
 Result: ✅ ZERO DATA LOSS - Edge guarantees delivery
 ```
-
-## Data Loss Windows
-
-### Protected (✅ SAFE):
-- **0-5 seconds (batching):** Events on disk ✓
-- **During flush/dispatch:** Events on disk until processed ✓
-- **After Edge dispatch:** Edge's persistence takes over ✓
-
-Most Adobe extensions don't persist before Edge dispatch. We do because of the batching window - without it, crashes during batching would lose data.
 
 ## Edge Network Handoff
 

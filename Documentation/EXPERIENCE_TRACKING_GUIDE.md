@@ -71,7 +71,24 @@ let expId = ContentAnalytics.registerExperience(
 ContentAnalytics.trackExperienceView(experienceId: expId, experienceLocation: "home")
 ```
 
-Re-registration is idempotent - calling `registerExperience()` with the same content has no negative side effects.
+Re-registration is idempotent - calling `registerExperience()` with the same content returns the same ID with no negative side effects. The featurization service is also idempotent, so even if the same experience definition is sent multiple times (e.g., after cache eviction or app restart), there's no duplication or data inconsistency on the backend.
+
+### Cache Behavior
+
+The SDK uses an LRU (Least Recently Used) cache with a capacity of **100 experience definitions**:
+
+- **Capacity:** 100 definitions max
+- **Eviction:** When full, least recently used definitions are removed
+- **Memory-only:** Not persisted to disk
+
+**Benefits:**
+- Fast lookups for asset attribution
+- Bounded memory usage (~20-40KB worst case)
+- Automatic cleanup of stale definitions
+- No disk I/O overhead
+- **Safe re-registration:** Featurization service handles duplicates gracefully
+
+For most apps, 100 definitions is sufficient. If you're registering more unique experiences per session, consider reusing experience IDs where content is identical (same content = same ID).
 
 ## Implementation Patterns
 
@@ -133,19 +150,37 @@ class FeedViewController: UIViewController {
 }
 ```
 
-### Persistent IDs
+### Experience ID Generation
 
-If you have stable server-provided IDs, store and reuse them:
+Experience IDs are deterministic - the same content always produces the same ID. The algorithm:
+
+1. Sort text values alphabetically
+2. Sort asset URLs alphabetically  
+3. Sort CTA values alphabetically
+4. Join all with `|` separator (texts, then assets, then CTAs)
+5. SHA-1 hash the combined string
+6. Take first 12 hex characters
+7. Prefix with `mobile-`
+
+**Example:**
+```swift
+// Content: texts=["$99", "Product"], assets=["img.jpg"], ctas=["Buy"]
+// Sorted & joined: "Product|$99|img.jpg|Buy"
+// SHA-1 → first 12 chars → "mobile-a1b2c3d4e5f6"
+```
+
+This means you can:
+- **Pre-compute IDs server-side** for consistent cross-platform IDs
+- **Cache by content hash** instead of arbitrary keys
+- **Detect content changes** by comparing IDs
 
 ```swift
-let experienceIdKey = "exp_\(product.id)"
+import CommonCrypto
 
-if let cachedExpId = UserDefaults.standard.string(forKey: experienceIdKey) {
-    experienceId = cachedExpId
-} else {
-    let expId = ContentAnalytics.registerExperience(...)
-    UserDefaults.standard.set(expId, forKey: experienceIdKey)
-    experienceId = expId
+func computeExperienceId(texts: [String], assets: [String], ctas: [String]) -> String {
+    let content = (texts.sorted() + assets.sorted() + ctas.sorted()).joined(separator: "|")
+    let hash = content.data(using: .utf8)!.sha1Hex()
+    return "mobile-\(hash.prefix(12))"
 }
 ```
 
@@ -177,6 +212,8 @@ ContentAnalytics.trackExperienceView(experienceId: expId)
 ## Asset Attribution
 
 When you register an experience with assets, the SDK links those asset URLs to the experience. This enables **asset attribution** - connecting standalone asset tracking events to their parent experience.
+
+> **Note:** Asset attribution works regardless of the `batchingEnabled` setting. The SDK caches experience definitions locally, so attribution is based on the registration cache - not on how events are batched for network delivery.
 
 ### How It Works
 
@@ -236,6 +273,7 @@ ContentAnalytics.trackExperienceView(experienceId: expId, experienceLocation: "c
 ```
 
 **CJA Report:**
+
 | Experience | Location | Views | Clicks | CTR |
 |------------|----------|-------|--------|-----|
 | Summer Sale | homepage.hero | 10,000 | 500 | 5% |
@@ -252,6 +290,7 @@ ContentAnalytics.trackExperienceView(experienceId: expId)
 ```
 
 **CJA Report:**
+
 | Experience | Views | Clicks | CTR |
 |------------|-------|--------|-----|
 | Summer Sale | 14,000 | 740 | 5.3% |
@@ -270,6 +309,7 @@ ContentAnalytics.trackAssetView(assetURL: heroImage, assetLocation: "search.resu
 ```
 
 **CJA Report:**
+
 | Asset | Location | Views | Clicks |
 |-------|----------|-------|--------|
 | hero.jpg | homepage | 50,000 | 2,500 |
@@ -309,6 +349,7 @@ When you register experiences, the featurization service analyzes the content an
 After featurization, CJA can show which persuasion strategies work best in each location:
 
 **CJA Report - Persuasion Strategy by Location:**
+
 | Location | Persuasion Strategy | Views | Clicks | CTR |
 |----------|---------------------|-------|--------|-----|
 | homepage.hero | Urgency | 10,000 | 800 | 8% |
@@ -322,6 +363,7 @@ After featurization, CJA can show which persuasion strategies work best in each 
 ### Performance by Content Category
 
 **CJA Report - Asset Category Performance:**
+
 | Asset Category | Location | Views | Engagement |
 |----------------|----------|-------|------------|
 | Lifestyle | homepage | 50,000 | 12% |
@@ -456,6 +498,7 @@ class ProductCardView {
 ### CJA Report with Custom Metrics
 
 **Average Load Time by Asset Location:**
+
 | Location | Avg Load Time | Avg View Duration |
 |----------|---------------|-------------------|
 | homepage.hero | 120ms | 3.2s |
@@ -630,7 +673,7 @@ if experienceIds[productId] == nil {
 }
 ```
 
-Or use stable IDs stored in UserDefaults.
+Or compute the ID yourself using the algorithm above for content-based caching.
 
 ## Common Patterns
 

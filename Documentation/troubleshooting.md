@@ -155,23 +155,16 @@ DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
 This is normal for temporary outages. The extension retries automatically with exponential backoff. Requests persist to disk and survive app restarts.
 
 **If persistent (> 24 hours):**
-1. Verify `featurizationServiceUrl` is correct
-2. Check service health status
-3. Review service logs for errors
+1. Check service health status
+2. Contact Adobe support
 
 ### "No response from featurization service"
 
-**Cause:** Service URL not configured or unreachable.
+**Cause:** Network issues or service unreachable.
 
 **Solution:**
-1. Configure in Adobe Data Collection:
-   ```json
-   {
-     "featurizationServiceUrl": "https://your-service.example.com"
-   }
-   ```
-2. Verify URL is accessible from device
-3. Check network permissions in Info.plist:
+1. Verify network connectivity
+2. Check network permissions in Info.plist:
    ```xml
    <key>NSAppTransportSecurity</key>
    <dict>
