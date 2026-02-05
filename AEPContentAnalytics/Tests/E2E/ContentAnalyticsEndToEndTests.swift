@@ -298,18 +298,18 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
             additionalData: [AssetTrackingEventPayload.OptionalFields.assetExtras: extras]
         )
 
-        // Then - Extras should be in XDM
+        // Then - Extras should be in XDM (all values stringified for XDM schema compliance)
         let edgeEvents = waitForEdgeEvents(count: 1)
         XCTAssertEqual(edgeEvents.count, 1)
 
         let xdm = edgeEvents.first?.data?["xdm"] as? [String: Any]
         let experienceContent = xdm?["experienceContent"] as? [String: Any]
         let assets = experienceContent?["assets"] as? [[String: Any]]
-        let assetExtras = assets?.first?["assetExtras"] as? [String: Any]
+        let assetExtras = assets?.first?["assetExtras"] as? [String: String]
 
         XCTAssertNotNil(assetExtras, "Should have assetExtras")
-        XCTAssertEqual(assetExtras?["category"] as? String, "product")
-        XCTAssertEqual(assetExtras?["price"] as? Double, 99.99)
+        XCTAssertEqual(assetExtras?["category"], "product")
+        XCTAssertEqual(assetExtras?["price"], "99.99")  // Stringified for XDM compliance
     }
 
     // MARK: - Experience Tracking Flow

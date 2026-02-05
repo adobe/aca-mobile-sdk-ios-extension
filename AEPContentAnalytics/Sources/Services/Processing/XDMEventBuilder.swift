@@ -27,6 +27,27 @@ typealias XDMEventBuilderProtocol = AssetXDMBuilder & ExperienceXDMBuilder
 /// Creates XDM-compliant payloads for asset and experience tracking events
 class XDMEventBuilder: XDMEventBuilderProtocol {
 
+    // MARK: - Private Helpers
+    
+    /// Converts all values in a dictionary to strings for XDM schema compliance.
+    /// The global XDM schema requires meta:xdmType on all fields - using strings ensures compliance.
+    private func stringifyExtras(_ extras: [String: Any]) -> [String: String] {
+        var result: [String: String] = [:]
+        for (key, value) in extras {
+            if let stringValue = value as? String {
+                result[key] = stringValue
+            } else if let data = try? JSONSerialization.data(withJSONObject: value, options: []),
+                      let jsonString = String(data: data, encoding: .utf8) {
+                // Complex types (arrays, dictionaries) become JSON strings
+                result[key] = jsonString
+            } else {
+                // Primitives (Int, Double, Bool) use string interpolation
+                result[key] = "\(value)"
+            }
+        }
+        return result
+    }
+
     // MARK: - Asset XDM Event Creation
 
     func createAssetXDMEvent(from assetKeys: [String], metrics: [String: [String: Any]], triggeringInteractionType: InteractionType) -> [String: Any] {
@@ -94,9 +115,9 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
             assetData["assetSource"] = assetLocation
         }
 
-        // Add assetExtras if present in metrics
+        // Add assetExtras if present in metrics (stringified for XDM schema compliance)
         if let assetExtras = metrics["assetExtras"] as? [String: Any] {
-            assetData["assetExtras"] = assetExtras
+            assetData["assetExtras"] = stringifyExtras(assetExtras)
         }
 
         Log.debug(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "🔑 AssetID: \(assetURL) | Source: \(assetLocation.isEmpty ? "(empty)" : assetLocation)")
@@ -137,8 +158,9 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
             interactionData["experienceClicks"] = ["value": clickCount]
         }
 
+        // Stringify experienceExtras for XDM schema compliance
         if let experienceExtras = metrics["experienceExtras"] as? [String: Any] {
-            interactionData["experienceExtras"] = experienceExtras
+            interactionData["experienceExtras"] = stringifyExtras(experienceExtras)
         }
 
         // Build assets array for attribution (without metrics - assets tracked separately)

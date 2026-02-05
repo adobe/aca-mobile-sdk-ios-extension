@@ -235,15 +235,15 @@ func testExtras() {
         additionalData: [AssetTrackingEventPayload.OptionalFields.assetExtras: extras]
     )
     
-    // Verify extras in XDM
+    // Verify extras in XDM (values are stringified for XDM schema compliance)
     let edgeEvents = waitForEdgeEvents(count: 1)
     let xdm = edgeEvents.first?.data?["xdm"] as? [String: Any]
     let experienceContent = xdm?["experienceContent"] as? [String: Any]
     let assets = experienceContent?["assets"] as? [[String: Any]]
-    let assetExtras = assets?.first?["assetExtras"] as? [String: Any]
+    let assetExtras = assets?.first?["assetExtras"] as? [String: String]
     
-    XCTAssertEqual(assetExtras?["category"] as? String, "product")
-    XCTAssertEqual(assetExtras?["price"] as? Double, 99.99)
+    XCTAssertEqual(assetExtras?["category"], "product")
+    XCTAssertEqual(assetExtras?["price"], "99.99")  // Stringified
 }
 ```
 
