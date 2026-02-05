@@ -66,9 +66,14 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
 
     /// Creates base XDM structure with experienceContent
     private func createBaseXDMEvent(experienceContent: [String: Any]) -> [String: Any] {
+        // Add channel and idSource inside experienceContent per schema
+        var fullExperienceContent = experienceContent
+        fullExperienceContent["channel"] = "mobile"
+        fullExperienceContent["idSource"] = "ContentAnalytics"
+        
         return [
             "eventType": ContentAnalyticsConstants.EventType.xdmContentEngagement,
-            "experienceContent": experienceContent
+            "experienceContent": fullExperienceContent
         ]
     }
 
