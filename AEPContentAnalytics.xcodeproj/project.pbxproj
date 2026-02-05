@@ -96,6 +96,23 @@
 		B3EFDB972F28202E00087A14 /* ContentAnalyticsEndToEndTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB552F28202E00087A14 /* ContentAnalyticsEndToEndTests.swift */; };
 		B3EFDB982F28202E00087A14 /* ContentAnalyticsStateManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB772F28202E00087A14 /* ContentAnalyticsStateManagerTests.swift */; };
 		B3EFDB9A2F28202E00087A14 /* ContentAnalyticsOrchestratorTestBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3EFDB592F28202E00087A14 /* ContentAnalyticsOrchestratorTestBase.swift */; };
+		B3FD4B852F35256A00F264C3 /* ContentAnalyticsOrchestrating.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B842F35256A00F264C3 /* ContentAnalyticsOrchestrating.swift */; };
+		B3FD4B902F35258100F264C3 /* EventExclusionFiltering.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B892F35258100F264C3 /* EventExclusionFiltering.swift */; };
+		B3FD4B912F35258100F264C3 /* ExperienceEventProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B8C2F35258100F264C3 /* ExperienceEventProcessing.swift */; };
+		B3FD4B922F35258100F264C3 /* EventExclusionFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B882F35258100F264C3 /* EventExclusionFilter.swift */; };
+		B3FD4B932F35258100F264C3 /* AssetEventProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B872F35258100F264C3 /* AssetEventProcessor.swift */; };
+		B3FD4B942F35258100F264C3 /* MetricsBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B8E2F35258100F264C3 /* MetricsBuilder.swift */; };
+		B3FD4B952F35258100F264C3 /* MetricsBuilding.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B8F2F35258100F264C3 /* MetricsBuilding.swift */; };
+		B3FD4B962F35258100F264C3 /* EventValidating.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B8A2F35258100F264C3 /* EventValidating.swift */; };
+		B3FD4B972F35258100F264C3 /* EventValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B8B2F35258100F264C3 /* EventValidator.swift */; };
+		B3FD4B982F35258100F264C3 /* ExperienceEventProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B8D2F35258100F264C3 /* ExperienceEventProcessor.swift */; };
+		B3FD4B992F35258100F264C3 /* AssetEventProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4B862F35258100F264C3 /* AssetEventProcessing.swift */; };
+		B3FD4BB72F35288C00F264C3 /* ConfigurationManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4BB22F35288C00F264C3 /* ConfigurationManagerTests.swift */; };
+		B3FD4BB82F35288C00F264C3 /* DefinitionCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4BB32F35288C00F264C3 /* DefinitionCacheTests.swift */; };
+		B3FD4BB92F35288C00F264C3 /* EventExclusionFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4BB42F35288C00F264C3 /* EventExclusionFilterTests.swift */; };
+		B3FD4BBA2F35288C00F264C3 /* EventValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4BB52F35288C00F264C3 /* EventValidatorTests.swift */; };
+		B3FD4BBB2F35288C00F264C3 /* MetricsBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4BB62F35288C00F264C3 /* MetricsBuilderTests.swift */; };
+		B3FD4BBD2F3528A500F264C3 /* StateManagerWithMocksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FD4BBC2F3528A500F264C3 /* StateManagerWithMocksTests.swift */; };
 		D61DC138482C4C32E03766F0 /* Pods_ContentAnalyticsDemoApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695341EA2CD9DB0A37215BF0 /* Pods_ContentAnalyticsDemoApp.framework */; };
 /* End PBXBuildFile section */
 
@@ -230,6 +247,23 @@
 		B3EFDB792F28202E00087A14 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B3EFDB7A2F28202E00087A14 /* XDMEventBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XDMEventBuilderTests.swift; sourceTree = "<group>"; };
 		B3EFDB7C2F28202E00087A14 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B3FD4B842F35256A00F264C3 /* ContentAnalyticsOrchestrating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentAnalyticsOrchestrating.swift; sourceTree = "<group>"; };
+		B3FD4B862F35258100F264C3 /* AssetEventProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetEventProcessing.swift; sourceTree = "<group>"; };
+		B3FD4B872F35258100F264C3 /* AssetEventProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetEventProcessor.swift; sourceTree = "<group>"; };
+		B3FD4B882F35258100F264C3 /* EventExclusionFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventExclusionFilter.swift; sourceTree = "<group>"; };
+		B3FD4B892F35258100F264C3 /* EventExclusionFiltering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventExclusionFiltering.swift; sourceTree = "<group>"; };
+		B3FD4B8A2F35258100F264C3 /* EventValidating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventValidating.swift; sourceTree = "<group>"; };
+		B3FD4B8B2F35258100F264C3 /* EventValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventValidator.swift; sourceTree = "<group>"; };
+		B3FD4B8C2F35258100F264C3 /* ExperienceEventProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceEventProcessing.swift; sourceTree = "<group>"; };
+		B3FD4B8D2F35258100F264C3 /* ExperienceEventProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceEventProcessor.swift; sourceTree = "<group>"; };
+		B3FD4B8E2F35258100F264C3 /* MetricsBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsBuilder.swift; sourceTree = "<group>"; };
+		B3FD4B8F2F35258100F264C3 /* MetricsBuilding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsBuilding.swift; sourceTree = "<group>"; };
+		B3FD4BB22F35288C00F264C3 /* ConfigurationManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationManagerTests.swift; sourceTree = "<group>"; };
+		B3FD4BB32F35288C00F264C3 /* DefinitionCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinitionCacheTests.swift; sourceTree = "<group>"; };
+		B3FD4BB42F35288C00F264C3 /* EventExclusionFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventExclusionFilterTests.swift; sourceTree = "<group>"; };
+		B3FD4BB52F35288C00F264C3 /* EventValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventValidatorTests.swift; sourceTree = "<group>"; };
+		B3FD4BB62F35288C00F264C3 /* MetricsBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsBuilderTests.swift; sourceTree = "<group>"; };
+		B3FD4BBC2F3528A500F264C3 /* StateManagerWithMocksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateManagerWithMocksTests.swift; sourceTree = "<group>"; };
 		BC7667C1AFDE95E9BE473776 /* Pods-ContentAnalyticsDemoApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ContentAnalyticsDemoApp.debug.xcconfig"; path = "Target Support Files/Pods-ContentAnalyticsDemoApp/Pods-ContentAnalyticsDemoApp.debug.xcconfig"; sourceTree = "<group>"; };
 		C89ADF38F8EA03F2443F0A95 /* Pods-ContentAnalyticsDemoApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ContentAnalyticsDemoApp.release.xcconfig"; path = "Target Support Files/Pods-ContentAnalyticsDemoApp/Pods-ContentAnalyticsDemoApp.release.xcconfig"; sourceTree = "<group>"; };
 		DA0B3B2BAB606552AE4789E8 /* Pods-AEPContentAnalytics.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AEPContentAnalytics.debug.xcconfig"; path = "Target Support Files/Pods-AEPContentAnalytics/Pods-AEPContentAnalytics.debug.xcconfig"; sourceTree = "<group>"; };
@@ -485,6 +519,7 @@
 		B3EFDB172F28201800087A14 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				B3FD4B842F35256A00F264C3 /* ContentAnalyticsOrchestrating.swift */,
 				B3EFDB142F28201800087A14 /* ContentAnalyticsOrchestrator.swift */,
 				6F6B0CFAD759465380E3AB5B /* FeaturizationCoordinator.swift */,
 				B3EFDB152F28201800087A14 /* EdgeEventDispatcher.swift */,
@@ -507,6 +542,16 @@
 		B3EFDB212F28201800087A14 /* Processing */ = {
 			isa = PBXGroup;
 			children = (
+				B3FD4B862F35258100F264C3 /* AssetEventProcessing.swift */,
+				B3FD4B872F35258100F264C3 /* AssetEventProcessor.swift */,
+				B3FD4B882F35258100F264C3 /* EventExclusionFilter.swift */,
+				B3FD4B892F35258100F264C3 /* EventExclusionFiltering.swift */,
+				B3FD4B8A2F35258100F264C3 /* EventValidating.swift */,
+				B3FD4B8B2F35258100F264C3 /* EventValidator.swift */,
+				B3FD4B8C2F35258100F264C3 /* ExperienceEventProcessing.swift */,
+				B3FD4B8D2F35258100F264C3 /* ExperienceEventProcessor.swift */,
+				B3FD4B8E2F35258100F264C3 /* MetricsBuilder.swift */,
+				B3FD4B8F2F35258100F264C3 /* MetricsBuilding.swift */,
 				B3EFDB1D2F28201800087A14 /* BatchCoordinating.swift */,
 				B3EFDB1E2F28201800087A14 /* BatchCoordinator.swift */,
 				B3EFDB1F2F28201800087A14 /* DirectHitProcessor.swift */,
@@ -677,6 +722,12 @@
 		B3EFDB7B2F28202E00087A14 /* Unit */ = {
 			isa = PBXGroup;
 			children = (
+				B3FD4BBC2F3528A500F264C3 /* StateManagerWithMocksTests.swift */,
+				B3FD4BB22F35288C00F264C3 /* ConfigurationManagerTests.swift */,
+				B3FD4BB32F35288C00F264C3 /* DefinitionCacheTests.swift */,
+				B3FD4BB42F35288C00F264C3 /* EventExclusionFilterTests.swift */,
+				B3FD4BB52F35288C00F264C3 /* EventValidatorTests.swift */,
+				B3FD4BB62F35288C00F264C3 /* MetricsBuilderTests.swift */,
 				B3EFDB672F28202E00087A14 /* ContentAnalyticsBatchCoordinatorTests.swift */,
 				B3EFDB682F28202E00087A14 /* ContentAnalyticsConfigurationTests.swift */,
 				B3EFDB692F28202E00087A14 /* ContentAnalyticsConfigurationValidationTests.swift */,
@@ -1018,6 +1069,7 @@
 				B3BA6EB32F3205EA00F495AF /* DefinitionCacheProtocol.swift in Sources */,
 				B3BA6EB52F3205EA00F495AF /* ConfigurationManaging.swift in Sources */,
 				B3EFDB3B2F28201800087A14 /* BatchCoordinator.swift in Sources */,
+				B3FD4B852F35256A00F264C3 /* ContentAnalyticsOrchestrating.swift in Sources */,
 				B3EFDB3C2F28201800087A14 /* ContentAnalytics.swift in Sources */,
 				B3EFDB3D2F28201800087A14 /* AssetMetrics.swift in Sources */,
 				B3EFDB3E2F28201800087A14 /* ContentItem.swift in Sources */,
@@ -1046,6 +1098,16 @@
 				B3EFDB532F28201800087A14 /* ContentAnalyticsUtilities.swift in Sources */,
 				B3EFDB542F28201800087A14 /* ContentAnalyticsFactory.swift in Sources */,
 				B3BA6EAD2F32042700F495AF /* ConfigurationManager.swift in Sources */,
+				B3FD4B902F35258100F264C3 /* EventExclusionFiltering.swift in Sources */,
+				B3FD4B912F35258100F264C3 /* ExperienceEventProcessing.swift in Sources */,
+				B3FD4B922F35258100F264C3 /* EventExclusionFilter.swift in Sources */,
+				B3FD4B932F35258100F264C3 /* AssetEventProcessor.swift in Sources */,
+				B3FD4B942F35258100F264C3 /* MetricsBuilder.swift in Sources */,
+				B3FD4B952F35258100F264C3 /* MetricsBuilding.swift in Sources */,
+				B3FD4B962F35258100F264C3 /* EventValidating.swift in Sources */,
+				B3FD4B972F35258100F264C3 /* EventValidator.swift in Sources */,
+				B3FD4B982F35258100F264C3 /* ExperienceEventProcessor.swift in Sources */,
+				B3FD4B992F35258100F264C3 /* AssetEventProcessing.swift in Sources */,
 				B3BA6EAE2F32042700F495AF /* DefinitionCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1055,12 +1117,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3EFDB7E2F28202E00087A14 /* ContentAnalyticsConfigurationValidationTests.swift in Sources */,
+				B3FD4BB72F35288C00F264C3 /* ConfigurationManagerTests.swift in Sources */,
+				B3FD4BB82F35288C00F264C3 /* DefinitionCacheTests.swift in Sources */,
+				B3FD4BB92F35288C00F264C3 /* EventExclusionFilterTests.swift in Sources */,
+				B3FD4BBA2F35288C00F264C3 /* EventValidatorTests.swift in Sources */,
+				B3FD4BBB2F35288C00F264C3 /* MetricsBuilderTests.swift in Sources */,
 				B3EFDB7F2F28202E00087A14 /* XDMEventBuilderTests.swift in Sources */,
 				B3EFDB802F28202E00087A14 /* ContentAnalyticsBatchCoordinatorTests.swift in Sources */,
 				B3EFDB812F28202E00087A14 /* ContentAnalyticsFeaturizationTests.swift in Sources */,
 				B3EFDB822F28202E00087A14 /* ContentAnalyticsPublicAPIComprehensiveTests.swift in Sources */,
 				B3EFDB832F28202E00087A14 /* ContentAnalyticsEdgeEventDispatcherTests.swift in Sources */,
 				B3EFDB842F28202E00087A14 /* ContentAnalyticsExtrasMergingTests.swift in Sources */,
+				B3FD4BBD2F3528A500F264C3 /* StateManagerWithMocksTests.swift in Sources */,
 				B3EFDB852F28202E00087A14 /* ContentAnalyticsOrchestratorBehaviorTests.swift in Sources */,
 				B3EFDB862F28202E00087A14 /* ContentAnalyticsOrchestratorConfigurationTests.swift in Sources */,
 				B3EFDB872F28202E00087A14 /* TestEventFactory.swift in Sources */,

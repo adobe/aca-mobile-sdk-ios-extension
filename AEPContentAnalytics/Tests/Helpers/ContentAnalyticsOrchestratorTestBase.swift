@@ -19,6 +19,7 @@ import XCTest
 ///
 /// **What this provides:**
 /// - Pre-configured mocks (state manager, batch coordinator, dispatcher, privacy validator, XDM builder)
+/// - Processing components (event validator, exclusion filter, metrics builder, event processors)
 /// - Permissive default configuration (allows all tracking)
 /// - Clean teardown
 /// - Reusable across all orchestrator test files
@@ -83,13 +84,34 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
             state: mockStateManager,
             privacyValidator: mockPrivacyValidator
         )
+        
+        // Create processing components
+        let eventValidator = EventValidator(state: mockStateManager)
+        let eventExclusionFilter = EventExclusionFilter(state: mockStateManager)
+        let metricsBuilder = MetricsBuilder(state: mockStateManager)
+        
+        let assetEventProcessor = AssetEventProcessor(
+            state: mockStateManager,
+            eventDispatcher: mockEventDispatcher,
+            xdmEventBuilder: mockXDMBuilder,
+            metricsBuilder: metricsBuilder
+        )
+        
+        let experienceEventProcessor = ExperienceEventProcessor(
+            state: mockStateManager,
+            eventDispatcher: mockEventDispatcher,
+            xdmEventBuilder: mockXDMBuilder,
+            metricsBuilder: metricsBuilder,
+            featurizationCoordinator: featurizationCoordinator
+        )
 
         // Create orchestrator with mocked dependencies
         orchestrator = ContentAnalyticsOrchestrator(
             state: mockStateManager,
-            eventDispatcher: mockEventDispatcher,
-            privacyValidator: mockPrivacyValidator,
-            xdmEventBuilder: mockXDMBuilder,
+            eventValidator: eventValidator,
+            eventExclusionFilter: eventExclusionFilter,
+            assetEventProcessor: assetEventProcessor,
+            experienceEventProcessor: experienceEventProcessor,
             featurizationCoordinator: featurizationCoordinator,
             batchCoordinator: mockBatchCoordinator
         )

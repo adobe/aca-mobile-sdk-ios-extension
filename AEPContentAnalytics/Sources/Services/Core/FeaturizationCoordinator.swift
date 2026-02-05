@@ -43,7 +43,7 @@ class FeaturizationCoordinator {
         if hitQueue != nil {
             Log.debug(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "✅ Featurization queue ready"
+                "Featurization queue ready"
             )
         } else {
             Log.debug(
@@ -84,20 +84,20 @@ class FeaturizationCoordinator {
         guard privacyValidator.isDataCollectionAllowed() else {
             Log.debug(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Skipping featurization - consent denied"
+                "Skipping featurization - consent denied"
             )
             return nil
         }
         
         Log.debug(
             label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-            "✅ Consent OK"
+            "Consent OK"
         )
         
         guard let config = state.getCurrentConfiguration() else {
             Log.debug(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Skipping featurization - No configuration available"
+                "Skipping featurization - No configuration available"
             )
             return nil
         }
@@ -106,7 +106,7 @@ class FeaturizationCoordinator {
               !serviceUrl.isEmpty else {
             Log.debug(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Skipping featurization - Cannot determine URL"
+                "Skipping featurization - Cannot determine URL"
             )
             return nil
         }
@@ -115,27 +115,27 @@ class FeaturizationCoordinator {
               !imsOrg.isEmpty else {
             Log.debug(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Skipping featurization - IMS Org not configured"
+                "Skipping featurization - IMS Org not configured"
             )
             return nil
         }
         
         Log.debug(
             label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-            "✅ Configuration valid | URL: \(serviceUrl) | Org: \(imsOrg)"
+            "Configuration valid | URL: \(serviceUrl) | Org: \(imsOrg)"
         )
         
         guard let definition = state.getExperienceDefinition(for: experienceId) else {
             Log.warning(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ No definition found for experience: \(experienceId)"
+                "No definition found for experience: \(experienceId)"
             )
             return nil
         }
         
         Log.debug(
             label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-            "✅ Definition found | ID: \(experienceId) | Assets: \(definition.assets.count)"
+            "Definition found | ID: \(experienceId) | Assets: \(definition.assets.count)"
         )
         
         return FeaturizationPrerequisites(config: config, imsOrg: imsOrg, definition: definition)
@@ -166,7 +166,7 @@ class FeaturizationCoordinator {
         guard let datastreamId = config.datastreamId, !datastreamId.isEmpty else {
             Log.error(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Cannot send to featurization - datastreamId not configured"
+                "Cannot send to featurization - datastreamId not configured"
             )
             return nil
         }
@@ -196,14 +196,14 @@ class FeaturizationCoordinator {
         guard let hitData = try? JSONEncoder().encode(hit) else {
             Log.error(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Failed to encode featurization hit | ExperienceID: \(experienceId)"
+                "Failed to encode featurization hit | ExperienceID: \(experienceId)"
             )
             return false
         }
         
         Log.debug(
             label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-            "✅ Hit encoded | Size: \(hitData.count) bytes"
+            "Hit encoded | Size: \(hitData.count) bytes"
         )
         
         let dataEntity = DataEntity(
@@ -215,7 +215,7 @@ class FeaturizationCoordinator {
         guard let queue = hitQueue else {
             Log.error(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Featurization queue is nil - cannot queue hit | ID: \(experienceId)"
+                "Featurization queue is nil - cannot queue hit | ID: \(experienceId)"
             )
             return false
         }
@@ -223,13 +223,13 @@ class FeaturizationCoordinator {
         if queue.queue(entity: dataEntity) {
             Log.debug(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "✅ Experience queued for featurization | ID: \(experienceId)"
+                "Experience queued for featurization | ID: \(experienceId)"
             )
             return true
         } else {
             Log.error(
                 label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR,
-                "❌ Failed to queue experience | ID: \(experienceId)"
+                "Failed to queue experience | ID: \(experienceId)"
             )
             return false
         }

@@ -17,7 +17,7 @@ import UIKit
 import SwiftUI
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    @AppStorage("environmentFileId") private var environmentFileId = "staging/b42a0d18ad1d/20b6e71fd073/launch-d7aa2913937f-development"
+    @AppStorage("environmentFileId") private var environmentFileId = "staging/b42a0d18ad1d/1214c33dba3f/launch-b6ab335a603e-development"
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         

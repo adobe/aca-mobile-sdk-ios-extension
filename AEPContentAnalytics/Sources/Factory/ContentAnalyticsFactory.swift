@@ -31,17 +31,39 @@ class ContentAnalyticsFactory {
     // MARK: - Core Service Creation
 
     func createContentAnalyticsOrchestrator() -> ContentAnalyticsOrchestrator {
+        // Create helper components
         let eventDispatcher = createEventDispatcher()
         let xdmEventBuilder = createXDMEventBuilder()
-        
         let featurizationCoordinator = createFeaturizationCoordinator()
         let batchCoordinator = createBatchCoordinator()
-
-        let orchestrator = ContentAnalyticsOrchestrator(
+        
+        // Create processing components
+        let eventValidator = createEventValidator()
+        let eventExclusionFilter = createEventExclusionFilter()
+        let metricsBuilder = createMetricsBuilder()
+        
+        let assetEventProcessor = AssetEventProcessor(
             state: state,
             eventDispatcher: eventDispatcher,
-            privacyValidator: privacyValidator,
             xdmEventBuilder: xdmEventBuilder,
+            metricsBuilder: metricsBuilder
+        )
+        
+        let experienceEventProcessor = ExperienceEventProcessor(
+            state: state,
+            eventDispatcher: eventDispatcher,
+            xdmEventBuilder: xdmEventBuilder,
+            metricsBuilder: metricsBuilder,
+            featurizationCoordinator: featurizationCoordinator
+        )
+
+        // Create orchestrator with all dependencies
+        let orchestrator = ContentAnalyticsOrchestrator(
+            state: state,
+            eventValidator: eventValidator,
+            eventExclusionFilter: eventExclusionFilter,
+            assetEventProcessor: assetEventProcessor,
+            experienceEventProcessor: experienceEventProcessor,
             featurizationCoordinator: featurizationCoordinator,
             batchCoordinator: batchCoordinator
         )
@@ -61,6 +83,53 @@ class ContentAnalyticsFactory {
     
     private func createFeaturizationCoordinator() -> FeaturizationCoordinator {
         return FeaturizationCoordinator(state: state, privacyValidator: privacyValidator)
+    }
+
+    // MARK: - Processing Component Creation
+    
+    /// Creates an EventValidator for validating incoming events.
+    func createEventValidator() -> EventValidating {
+        return EventValidator(state: state)
+    }
+    
+    /// Creates an EventExclusionFilter for filtering events based on configuration.
+    func createEventExclusionFilter() -> EventExclusionFiltering {
+        return EventExclusionFilter(state: state)
+    }
+    
+    /// Creates a MetricsBuilder for aggregating event metrics.
+    func createMetricsBuilder() -> MetricsBuilding {
+        return MetricsBuilder(state: state)
+    }
+    
+    /// Creates an AssetEventProcessor for processing asset events.
+    func createAssetEventProcessor(
+        eventDispatcher: ContentAnalyticsEventDispatcher,
+        xdmEventBuilder: XDMEventBuilderProtocol,
+        metricsBuilder: MetricsBuilding
+    ) -> AssetEventProcessing {
+        return AssetEventProcessor(
+            state: state,
+            eventDispatcher: eventDispatcher,
+            xdmEventBuilder: xdmEventBuilder,
+            metricsBuilder: metricsBuilder
+        )
+    }
+    
+    /// Creates an ExperienceEventProcessor for processing experience events.
+    func createExperienceEventProcessor(
+        eventDispatcher: ContentAnalyticsEventDispatcher,
+        xdmEventBuilder: XDMEventBuilderProtocol,
+        metricsBuilder: MetricsBuilding,
+        featurizationCoordinator: FeaturizationCoordinator
+    ) -> ExperienceEventProcessing {
+        return ExperienceEventProcessor(
+            state: state,
+            eventDispatcher: eventDispatcher,
+            xdmEventBuilder: xdmEventBuilder,
+            metricsBuilder: metricsBuilder,
+            featurizationCoordinator: featurizationCoordinator
+        )
     }
 
     // MARK: - Helper Component Creation
@@ -85,7 +154,7 @@ class ContentAnalyticsFactory {
         }
 
         guard let serviceUrl = config.getFeaturizationBaseUrl() else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "❌ Cannot determine featurization URL - Edge domain not configured")
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Cannot determine featurization URL - Edge domain not configured")
             return nil
         }
 
@@ -100,7 +169,7 @@ class ContentAnalyticsFactory {
         let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: hitProcessor)
         hitQueue.beginProcessing() // Queue starts suspended by default
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Featurization queue ready")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Featurization queue ready")
 
         return hitQueue
     }
@@ -122,7 +191,7 @@ class ContentAnalyticsFactory {
             state: state
         )
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ BatchCoordinator ready")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "BatchCoordinator ready")
 
         return batchCoordinator
     }

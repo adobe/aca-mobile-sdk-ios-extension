@@ -31,14 +31,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testUpdateConfiguration_Success() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 50,
-            flushInterval: 10.0,
-            maxWaitTime: 20.0,
-            excludedUrlPatterns: [],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.batchingEnabled = true
+        config.maxBatchSize = 50
         
         // When
         configManager.updateConfiguration(config)
@@ -52,14 +47,8 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testBatchingEnabled_WhenConfigurationSet() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.batchingEnabled = true
         
         // When
         configManager.updateConfiguration(config)
@@ -87,14 +76,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testShouldTrackUrl_WithExcludedPattern_ReturnsFalse() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [".*internal.*"],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.excludedAssetUrlsRegexp = ".*internal.*"
+        config.compileRegexPatterns()
         configManager.updateConfiguration(config)
         
         let url = URL(string: "https://example.com/internal/page")!
@@ -105,14 +89,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testShouldTrackUrl_WithNonMatchingPattern_ReturnsTrue() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [".*internal.*"],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.excludedAssetUrlsRegexp = ".*internal.*"
+        config.compileRegexPatterns()
         configManager.updateConfiguration(config)
         
         let url = URL(string: "https://example.com/public/page")!
@@ -135,14 +114,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testShouldTrackExperience_WithExcludedLocation_ReturnsFalse() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [],
-            excludedLocations: ["admin.*"]
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.excludedExperienceLocationsRegexp = "admin.*"
+        config.compileRegexPatterns()
         configManager.updateConfiguration(config)
         
         // When/Then
@@ -151,14 +125,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testShouldTrackExperience_WithNonMatchingLocation_ReturnsTrue() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [],
-            excludedLocations: ["admin.*"]
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.excludedExperienceLocationsRegexp = "admin.*"
+        config.compileRegexPatterns()
         configManager.updateConfiguration(config)
         
         // When/Then
@@ -179,14 +148,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testShouldTrackAssetLocation_WithExcludedPattern_ReturnsFalse() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [".*internal.*"],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.excludedAssetLocationsRegexp = ".*internal.*"
+        config.compileRegexPatterns()
         configManager.updateConfiguration(config)
         
         // When/Then
@@ -197,14 +161,9 @@ class ConfigurationManagerTests: XCTestCase {
     
     func testReset_ClearsConfiguration() {
         // Given
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 50,
-            flushInterval: 10.0,
-            maxWaitTime: 20.0,
-            excludedUrlPatterns: [],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.batchingEnabled = true
+        config.maxBatchSize = 50
         configManager.updateConfiguration(config)
         XCTAssertNotNil(configManager.getCurrentConfiguration())
         
@@ -223,22 +182,16 @@ class ConfigurationManagerTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Concurrent operations complete")
         expectation.expectedFulfillmentCount = 100
         
-        let config = ContentAnalyticsConfiguration(
-            batchingEnabled: true,
-            maxBatchSize: 10,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0,
-            excludedUrlPatterns: [],
-            excludedLocations: []
-        )
+        var config = ContentAnalyticsConfiguration()
+        config.batchingEnabled = true
         
         // When - concurrent reads and writes
         DispatchQueue.concurrentPerform(iterations: 100) { index in
             if index % 2 == 0 {
-                configManager.updateConfiguration(config)
+                self.configManager.updateConfiguration(config)
             } else {
-                _ = configManager.getCurrentConfiguration()
-                _ = configManager.batchingEnabled
+                _ = self.configManager.getCurrentConfiguration()
+                _ = self.configManager.batchingEnabled
             }
             expectation.fulfill()
         }

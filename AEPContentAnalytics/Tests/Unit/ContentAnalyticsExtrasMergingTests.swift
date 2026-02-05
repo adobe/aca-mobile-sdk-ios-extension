@@ -128,8 +128,8 @@ class ContentAnalyticsExtrasMergingTests: XCTestCase {
         XCTAssertNil(assetExtras?["all"], "Should not have 'all' array for merged extras")
     }
 
-    func testAssetExtras_WithConflicts_CreatesAllArray() {
-        // Given - Asset with conflicting extras
+    func testAssetExtras_WithConflicts_StringifiesAllArray() {
+        // Given - Asset with conflicting extras (contains 'all' array)
         let assetKey = "https://example.com/image.jpg?location=home"
         let metrics: [String: [String: Any]] = [
             assetKey: [
@@ -153,16 +153,17 @@ class ContentAnalyticsExtrasMergingTests: XCTestCase {
             triggeringInteractionType: .view
         )
 
-        // Then - Should have "all" array for conflicts
+        // Then - XDM builder stringifies extras for schema compliance
         let experienceContent = xdm["experienceContent"] as? [String: Any]
         let assets = experienceContent?["assets"] as? [[String: Any]]
         let firstAsset = assets?.first
-        let assetExtras = firstAsset?["assetExtras"] as? [String: Any]
-        let allArray = assetExtras?["all"] as? [[String: Any]]
+        let assetExtras = firstAsset?["assetExtras"] as? [String: String]
+        let allString = assetExtras?["all"]
 
         XCTAssertNotNil(assetExtras, "assetExtras should be present")
-        XCTAssertNotNil(allArray, "Should have 'all' array for conflicting extras")
-        XCTAssertEqual(allArray?.count, 2, "Should have 2 entries in 'all' array")
+        XCTAssertNotNil(allString, "Should have 'all' key with stringified JSON")
+        XCTAssertTrue(allString?.contains("summer2024") == true, "Should contain summer2024 campaign")
+        XCTAssertTrue(allString?.contains("winter2024") == true, "Should contain winter2024 campaign")
     }
 
     // MARK: - Experience Extras Tests
@@ -262,8 +263,8 @@ class ContentAnalyticsExtrasMergingTests: XCTestCase {
         XCTAssertNil(experienceExtras?["all"], "Should not have 'all' array for merged extras")
     }
 
-    func testExperienceExtras_WithConflicts_CreatesAllArray() {
-        // Given - Experience with conflicting extras
+    func testExperienceExtras_WithConflicts_StringifiesAllArray() {
+        // Given - Experience with conflicting extras (contains 'all' array)
         let metrics: [String: Any] = [
             "experienceId": "mobile-abc123",
             "experienceLocation": "home",
@@ -287,15 +288,16 @@ class ContentAnalyticsExtrasMergingTests: XCTestCase {
             state: ContentAnalyticsStateManager()
         )
 
-        // Then - Should have "all" array for conflicts
+        // Then - XDM builder stringifies extras for schema compliance
         let experienceContent = xdm["experienceContent"] as? [String: Any]
         let experience = experienceContent?["experience"] as? [String: Any]
-        let experienceExtras = experience?["experienceExtras"] as? [String: Any]
-        let allArray = experienceExtras?["all"] as? [[String: Any]]
+        let experienceExtras = experience?["experienceExtras"] as? [String: String]
+        let allString = experienceExtras?["all"]
 
         XCTAssertNotNil(experienceExtras, "experienceExtras should be present")
-        XCTAssertNotNil(allArray, "Should have 'all' array for conflicting extras")
-        XCTAssertEqual(allArray?.count, 2, "Should have 2 entries in 'all' array")
+        XCTAssertNotNil(allString, "Should have 'all' key with stringified JSON")
+        XCTAssertTrue(allString?.contains("summer2024") == true, "Should contain summer2024 campaign")
+        XCTAssertTrue(allString?.contains("winter2024") == true, "Should contain winter2024 campaign")
     }
 
     // MARK: - Multiple Assets Tests
