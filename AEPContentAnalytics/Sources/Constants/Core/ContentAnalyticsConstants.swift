@@ -54,28 +54,20 @@ enum ContentAnalyticsConstants {
     /// Log tag for the extension
     static let LOG_TAG = FRIENDLY_NAME
 
-    /// Logging labels for consistent log filtering and debugging
+    /// Log labels for filtering and debugging
     enum LogLabels {
-        /// Main extension log label
         static let EXTENSION = "ContentAnalytics"
-
-        /// Orchestrator log label
         static let ORCHESTRATOR = "ContentAnalytics.Orchestrator"
-
-        /// State manager log label
         static let STATE_MANAGER = "ContentAnalytics.StateManager"
-
-        /// XDM event builder log label
         static let XDM_BUILDER = "ContentAnalytics.XDMBuilder"
-
-        /// Batch processor log label
         static let BATCH_PROCESSOR = "ContentAnalytics.BatchCoordinator"
-
-        /// Privacy validator log label
         static let PRIVACY_VALIDATOR = "ContentAnalytics.PrivacyValidator"
-
-        /// Configuration log label
         static let CONFIG = "ContentAnalytics.Config"
+        static let EVENT_VALIDATOR = "ContentAnalytics.EventValidator"
+        static let EXCLUSION_FILTER = "ContentAnalytics.ExclusionFilter"
+        static let METRICS_BUILDER = "ContentAnalytics.MetricsBuilder"
+        static let ASSET_PROCESSOR = "ContentAnalytics.AssetProcessor"
+        static let EXPERIENCE_PROCESSOR = "ContentAnalytics.ExperienceProcessor"
     }
 
     /// Event names

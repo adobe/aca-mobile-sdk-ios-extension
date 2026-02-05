@@ -107,14 +107,14 @@ public class ContentAnalytics: NSObject, Extension {
         if let config = parseConfiguration(from: configurationData) {
             contentAnalyticsState.updateConfiguration(config)
             contentAnalyticsOrchestrator.updateConfiguration(config)
-            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Config applied")
+            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Config applied")
 
             if !contentAnalyticsOrchestrator.hasFeaturizationQueue() {
                 let newQueue = factory.createFeaturizationHitQueue()
                 contentAnalyticsOrchestrator.initializeFeaturizationQueueIfNeeded(queue: newQueue)
             }
         } else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "⚠️ Invalid config data")
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Invalid config data")
         }
     }
 
@@ -154,7 +154,7 @@ public class ContentAnalytics: NSObject, Extension {
     }
 
     private func handleIdentityReset(event: Event) {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "🔄 Identity reset - clearing state")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Identity reset - clearing state")
 
         // Clear state (configuration, sent experience definitions)
         contentAnalyticsState.reset()
@@ -162,7 +162,7 @@ public class ContentAnalytics: NSObject, Extension {
         // Flush any pending batch (don't send after identity reset)
         contentAnalyticsOrchestrator.clearPendingBatch()
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Identity reset complete")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Identity reset complete")
     }
 
     // MARK: - Event Handler
@@ -231,7 +231,7 @@ public class ContentAnalytics: NSObject, Extension {
     // MARK: - Configuration Parsing
 
     private func parseConfiguration(from configData: [String: Any]) -> ContentAnalyticsConfiguration? {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "📝 Parsing configuration | Keys: \(configData.keys)")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Parsing configuration | Keys: \(configData.keys)")
 
         // Map Adobe standard keys to ContentAnalytics property names
         var mappedConfig: [String: Any] = [:]
@@ -247,20 +247,20 @@ public class ContentAnalytics: NSObject, Extension {
             switch strippedKey {
             case "edge.domain":
                 mappedKey = "edgeDomain"
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "📌 Mapped: edge.domain → edgeDomain = \(value)")
+                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped: edge.domain -> edgeDomain = \(value)")
             case "edge.configId":
                 // Skip edge.configId - it's for the main app, not Content Analytics
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "⏭️ Skipping: edge.configId (main app datastream)")
+                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Skipping: edge.configId (main app datastream)")
                 continue
             case "configId":
                 // contentanalytics.configId → datastreamId (aligns with edge.configId naming)
                 mappedKey = "datastreamId"
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "📌 Mapped: contentanalytics.configId → datastreamId = \(value)")
+                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped: contentanalytics.configId -> datastreamId = \(value)")
             case "edge.environment":
                 mappedKey = "edgeEnvironment"
             case "experienceCloud.org":
                 mappedKey = "experienceCloudOrgId"
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "📌 Mapped: experienceCloud.org → experienceCloudOrgId = \(value)")
+                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped: experienceCloud.org -> experienceCloudOrgId = \(value)")
             default:
                 mappedKey = strippedKey
             }
@@ -268,17 +268,17 @@ public class ContentAnalytics: NSObject, Extension {
             mappedConfig[mappedKey] = value
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "📝 Mapped config keys: \(mappedConfig.keys)")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped config keys: \(mappedConfig.keys)")
 
         // Convert to JSON data and decode
         guard let jsonData = try? JSONSerialization.data(withJSONObject: mappedConfig),
               let config = try? JSONDecoder().decode(ContentAnalyticsConfiguration.self, from: jsonData) else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "❌ Failed to decode configuration")
+            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Failed to decode configuration")
             return nil
         }
 
         let configSummary = "trackExperiences: \(config.trackExperiences) | edgeDomain: \(config.edgeDomain ?? "nil") | org: \(config.experienceCloudOrgId ?? "nil")"
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "✅ Config parsed | \(configSummary) | datastream: \(config.datastreamId ?? "nil")")
+        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Config parsed | \(configSummary) | datastream: \(config.datastreamId ?? "nil")")
 
         return config
     }

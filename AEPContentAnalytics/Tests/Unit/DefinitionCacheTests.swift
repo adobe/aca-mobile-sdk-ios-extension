@@ -213,7 +213,7 @@ class DefinitionCacheTests: XCTestCase {
         return ExperienceDefinition(
             experienceId: id,
             assets: ["https://example.com/\(id).jpg"],
-            texts: [ContentItem(location: "title", text: "Title \(id)")],
+            texts: [ContentItem(value: "Title \(id)")],
             ctas: nil,
             sentToFeaturization: sentToFeaturization
         )

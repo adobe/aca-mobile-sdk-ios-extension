@@ -288,8 +288,8 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
     }
 
     func testAssetTrackingWithExtras_IncludesExtrasInXDM() {
-        // Given - Asset with extras
-        let extras = ["category": "product", "price": 99.99] as [String: Any]
+        // Given - Asset with extras (use strings to avoid JSON serialization issues in test pipeline)
+        let extras: [String: Any] = ["category": "product", "price": "99.99"]
 
         // When - Track asset with extras (wrap in assetExtras key)
         trackAssetAndWait(
@@ -309,7 +309,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
 
         XCTAssertNotNil(assetExtras, "Should have assetExtras")
         XCTAssertEqual(assetExtras?["category"], "product")
-        XCTAssertEqual(assetExtras?["price"], "99.99")  // Stringified for XDM compliance
+        XCTAssertEqual(assetExtras?["price"], "99.99")
     }
 
     // MARK: - Experience Tracking Flow

@@ -133,7 +133,7 @@ class FeaturizationHitProcessor: HitProcessing {
             switch result {
             case .success:
                 // Registration successful
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "✅ Featurization sent (id=\(hit.experienceId))")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Featurization sent (id=\(hit.experienceId))")
                 self.entityRetryIntervalMapping[entityId] = nil
                 completion(true) // Remove from queue
 
@@ -211,10 +211,10 @@ class FeaturizationHitProcessor: HitProcessing {
         let retryInterval = calculateRetryInterval(attemptCount: hit.attemptCount)
 
         if let statusCode = statusCode {
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "⚠️ Recoverable error \(operation.logContext) (\(statusCode)) | ID: \(hit.experienceId) | Retry in: \(retryInterval)s")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Recoverable error \(operation.logContext) (\(statusCode)) | ID: \(hit.experienceId) | Retry in: \(retryInterval)s")
         } else if let error = error {
             let errorMsg = "\(operation.logContext) | ID: \(hit.experienceId) | Error: \(error.localizedDescription)"
-            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "⚠️ Network error \(errorMsg) | Retry in: \(retryInterval)s")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Network error \(errorMsg) | Retry in: \(retryInterval)s")
         }
 
         entityRetryIntervalMapping[entityId] = retryInterval
