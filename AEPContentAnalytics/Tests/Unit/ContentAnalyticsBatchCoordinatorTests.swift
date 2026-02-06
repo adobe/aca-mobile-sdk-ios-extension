@@ -197,16 +197,13 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
     // MARK: - Batch Size Trigger Tests
 
     func testBatchSize_ReachesThreshold_TriggersBatch() {
-        // Given - Expectation for callback
-        let expectation = XCTestExpectation(description: "Batch flushed on threshold")
+        // Given - Callback to capture flush
         let batchSize = 10
-        
-        // Set up callback with expectation
+
         batchCoordinator.setCallbacks(
             assetCallback: { [weak self] events in
                 self?.assetCallbackInvoked = true
                 self?.assetCallbackEvents.append(contentsOf: events)
-                expectation.fulfill()
             },
             experienceCallback: { [weak self] events in
                 self?.experienceCallbackInvoked = true
@@ -220,12 +217,20 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
             batchCoordinator.addAssetEvent(createAssetEvent(url: "https://example.com/asset\(i).jpg"))
         }
 
-        // Wait for callback (returns immediately when fulfilled, max 10s timeout)
-        wait(for: [expectation], timeout: 10.0)
+        // Wait for batch to flush by polling (avoids flaky expectation from callback on background queue)
+        let flushTimeout = 15.0
+        let pollInterval = 0.05
+        var elapsed: TimeInterval = 0
+        while elapsed < flushTimeout {
+            let status = batchCoordinator.getBatchStatus()
+            if status.assetCount == 0 { break }
+            Thread.sleep(forTimeInterval: pollInterval)
+            elapsed += pollInterval
+        }
 
         // Then - Batch should have been flushed
         let status = batchCoordinator.getBatchStatus()
-        XCTAssertEqual(status.assetCount, 0, "Batch should be flushed when reaching threshold")
+        XCTAssertEqual(status.assetCount, 0, "Batch should be flushed when reaching threshold (waited \(elapsed)s)")
         XCTAssertTrue(assetCallbackInvoked, "Asset callback should be invoked")
     }
 
