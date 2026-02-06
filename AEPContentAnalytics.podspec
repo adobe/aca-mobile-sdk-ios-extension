@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "AEPContentAnalytics"
-  s.version          = "5.0.0-beta.1"
+  s.version          = "5.0.0"
   s.summary          = "Content Analytics extension for Adobe Experience Platform Mobile SDK."
   
   s.description      = <<-DESC

@@ -46,7 +46,7 @@ enum ContentAnalyticsConstants {
     static let MAX_WAIT_TIME_MULTIPLIER: Double = 2.5
 
     /// Extension version
-    static let EXTENSION_VERSION = "5.0.0-beta.1"
+    static let EXTENSION_VERSION = "5.0.0"
 
     /// Extension friendly name
     static let FRIENDLY_NAME = "Content Analytics"
