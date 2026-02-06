@@ -269,6 +269,12 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
                 if let size = value as? Int, size > 0 {
                     newConfig.maxBatchSize = min(size, ContentAnalyticsConstants.MAX_BATCH_SIZE)
                 }
+            case "batchFlushInterval":
+                if let interval = value as? TimeInterval, interval > 0 {
+                    newConfig.batchFlushInterval = interval
+                } else if let number = value as? NSNumber, number.doubleValue > 0 {
+                    newConfig.batchFlushInterval = number.doubleValue
+                }
             case "debugLogging":
                 if let debug = value as? Bool {
                     newConfig.debugLogging = debug
