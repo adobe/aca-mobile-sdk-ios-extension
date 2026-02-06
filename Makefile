@@ -125,8 +125,8 @@ lint:
 	./Pods/SwiftLint/swiftlint lint AEPContentAnalytics/Sources SampleApps
 
 test-SPM-integration:
-	sh ./Scripts/test-SPM.sh
+	sh ./Script/test-SPM.sh
 
 test-podspec:
-	sh ./Scripts/test-podspec.sh
+	sh ./Script/test-podspec.sh
 
