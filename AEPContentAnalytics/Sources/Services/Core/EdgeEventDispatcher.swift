@@ -28,7 +28,7 @@ class EdgeEventDispatcher: ContentAnalyticsEventDispatcher {
     }
 
     func dispatch(event: Event) {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "→ Edge: \(event.name)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Dispatching to Edge: \(event.name)")
 
         runtime.dispatch(event: event)
     }

@@ -88,7 +88,7 @@ class StatePrivacyValidator: PrivacyValidator {
                 isCacheInitialized = true
             }
 
-            Log.trace(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔒 Starting privacy validation (using cached states)")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Starting privacy validation (using cached states)")
 
             // Check if Hub shared state is available
             guard cachedHubData != nil else {
@@ -96,7 +96,7 @@ class StatePrivacyValidator: PrivacyValidator {
                 return false
             }
 
-            Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔍 Consent extension registered: \(cachedIsConsentRegistered)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Consent extension registered: \(cachedIsConsentRegistered)")
 
             if cachedIsConsentRegistered {
                 // Consent is registered - check its shared state
@@ -105,21 +105,21 @@ class StatePrivacyValidator: PrivacyValidator {
                     return false
                 }
 
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔍 Consent shared state data: \(consentData)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Consent shared state data: \(consentData)")
 
                 // Consent shared state exists - use that value
                 if let consents = consentData["consents"] as? [String: Any],
                    let collect = consents["collect"] as? [String: Any],
                    let val = collect["val"] as? String {
 
-                    Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🔍 Consent collect value: \(val)")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Consent collect value: \(val)")
 
                     switch val.lowercased() {
                     case "y", "yes":
                         Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Data collection allowed - consent granted")
                         return true
                     case "n", "no":
-                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "🚫 Data collection blocked - consent denied")
+                        Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Data collection blocked - consent denied")
                         return false
                     case "p", "pending":
                         Log.debug(label: ContentAnalyticsConstants.LogLabels.PRIVACY_VALIDATOR, "Data collection blocked - consent pending")

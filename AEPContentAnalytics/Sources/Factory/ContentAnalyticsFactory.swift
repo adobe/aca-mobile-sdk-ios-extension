@@ -31,33 +31,27 @@ class ContentAnalyticsFactory {
     // MARK: - Core Service Creation
 
     func createContentAnalyticsOrchestrator() -> ContentAnalyticsOrchestrator {
-        // Create helper components
         let eventDispatcher = createEventDispatcher()
         let xdmEventBuilder = createXDMEventBuilder()
         let featurizationCoordinator = createFeaturizationCoordinator()
         let batchCoordinator = createBatchCoordinator()
-        
-        // Create processing components
+
         let eventValidator = createEventValidator()
         let eventExclusionFilter = createEventExclusionFilter()
         let metricsBuilder = createMetricsBuilder()
-        
-        let assetEventProcessor = AssetEventProcessor(
-            state: state,
+
+        let assetEventProcessor = createAssetEventProcessor(
             eventDispatcher: eventDispatcher,
             xdmEventBuilder: xdmEventBuilder,
             metricsBuilder: metricsBuilder
         )
-        
-        let experienceEventProcessor = ExperienceEventProcessor(
-            state: state,
+        let experienceEventProcessor = createExperienceEventProcessor(
             eventDispatcher: eventDispatcher,
             xdmEventBuilder: xdmEventBuilder,
             metricsBuilder: metricsBuilder,
             featurizationCoordinator: featurizationCoordinator
         )
 
-        // Create orchestrator with all dependencies
         let orchestrator = ContentAnalyticsOrchestrator(
             state: state,
             eventValidator: eventValidator,
@@ -80,30 +74,26 @@ class ContentAnalyticsFactory {
 
         return orchestrator
     }
-    
+
     private func createFeaturizationCoordinator() -> FeaturizationCoordinator {
         return FeaturizationCoordinator(state: state, privacyValidator: privacyValidator)
     }
 
     // MARK: - Processing Component Creation
-    
-    /// Creates an EventValidator for validating incoming events.
-    func createEventValidator() -> EventValidating {
+
+    private func createEventValidator() -> EventValidating {
         return EventValidator(state: state)
     }
-    
-    /// Creates an EventExclusionFilter for filtering events based on configuration.
-    func createEventExclusionFilter() -> EventExclusionFiltering {
+
+    private func createEventExclusionFilter() -> EventExclusionFiltering {
         return EventExclusionFilter(state: state)
     }
-    
-    /// Creates a MetricsBuilder for aggregating event metrics.
-    func createMetricsBuilder() -> MetricsBuilding {
+
+    private func createMetricsBuilder() -> MetricsBuilding {
         return MetricsBuilder(state: state)
     }
-    
-    /// Creates an AssetEventProcessor for processing asset events.
-    func createAssetEventProcessor(
+
+    private func createAssetEventProcessor(
         eventDispatcher: ContentAnalyticsEventDispatcher,
         xdmEventBuilder: XDMEventBuilderProtocol,
         metricsBuilder: MetricsBuilding
@@ -115,9 +105,8 @@ class ContentAnalyticsFactory {
             metricsBuilder: metricsBuilder
         )
     }
-    
-    /// Creates an ExperienceEventProcessor for processing experience events.
-    func createExperienceEventProcessor(
+
+    private func createExperienceEventProcessor(
         eventDispatcher: ContentAnalyticsEventDispatcher,
         xdmEventBuilder: XDMEventBuilderProtocol,
         metricsBuilder: MetricsBuilding,
@@ -144,21 +133,21 @@ class ContentAnalyticsFactory {
 
     func createFeaturizationHitQueue() -> PersistentHitQueue? {
         guard let dataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: ContentAnalyticsConstants.FEATURIZATION_QUEUE_NAME) else {
-            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create data queue for featurization")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Failed to create data queue for featurization")
             return nil
         }
 
         guard let config = state.getCurrentConfiguration() else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "No configuration available for featurization service")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "No configuration available for featurization service")
             return nil
         }
 
         guard let serviceUrl = config.getFeaturizationBaseUrl() else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Cannot determine featurization URL - Edge domain not configured")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Cannot determine featurization URL - Edge domain not configured")
             return nil
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Featurization URL: \(serviceUrl)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Featurization URL: \(serviceUrl)")
 
         let featurizationService = ExperienceFeaturizationService(
             baseUrl: serviceUrl,
@@ -169,19 +158,19 @@ class ContentAnalyticsFactory {
         let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: hitProcessor)
         hitQueue.beginProcessing() // Queue starts suspended by default
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Featurization queue ready")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Featurization queue ready")
 
         return hitQueue
     }
 
     private func createBatchCoordinator() -> BatchCoordinator? {
         guard let assetDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: ContentAnalyticsConstants.ASSET_BATCH_QUEUE_NAME) else {
-            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create asset batch data queue")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Failed to create asset batch data queue")
             return nil
         }
 
         guard let experienceDataQueue = ServiceProvider.shared.dataQueueService.getDataQueue(label: ContentAnalyticsConstants.EXPERIENCE_BATCH_QUEUE_NAME) else {
-            Log.error(label: ContentAnalyticsConstants.LOG_TAG, "Failed to create experience batch data queue")
+            Log.error(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Failed to create experience batch data queue")
             return nil
         }
 
@@ -191,7 +180,7 @@ class ContentAnalyticsFactory {
             state: state
         )
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "BatchCoordinator ready")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "BatchCoordinator ready")
 
         return batchCoordinator
     }
