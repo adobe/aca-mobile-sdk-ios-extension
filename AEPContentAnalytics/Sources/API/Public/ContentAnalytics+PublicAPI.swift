@@ -35,7 +35,7 @@ public extension ContentAnalytics {
     ) {
         // Validation
         guard !assetURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackAsset called with empty assetURL - ignoring")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "trackAsset called with empty assetURL - ignoring")
             return
         }
         
@@ -150,7 +150,7 @@ public extension ContentAnalytics {
 
         dispatchContentAnalyticsEvent(name: ContentAnalyticsConstants.EventNames.TRACK_EXPERIENCE, data: eventData)
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Registered experience: \(experienceId)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Registered experience: \(experienceId)")
 
         return experienceId
     }
@@ -167,7 +167,7 @@ public extension ContentAnalytics {
     ) {
         // Validation
         guard !experienceId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackExperienceView called with empty experienceId - ignoring")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "trackExperienceView called with empty experienceId - ignoring")
             return
         }
         
@@ -200,7 +200,7 @@ public extension ContentAnalytics {
     ) {
         // Validation
         guard !experienceId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackExperienceClick called with empty experienceId - ignoring")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "trackExperienceClick called with empty experienceId - ignoring")
             return
         }
         
@@ -238,7 +238,7 @@ public extension ContentAnalytics {
     ) {
         // Validation
         guard !assetURLs.isEmpty else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "trackAssetCollection called with empty assetURLs array - ignoring")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "trackAssetCollection called with empty assetURLs array - ignoring")
             return
         }
         

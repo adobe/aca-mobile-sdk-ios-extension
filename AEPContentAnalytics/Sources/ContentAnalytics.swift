@@ -65,18 +65,18 @@ public class ContentAnalytics: NSObject, Extension {
         if let configSharedState = getConfigurationSharedState(for: nil),
            configSharedState.status == .set,
            let configData = configSharedState.value {
-            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Reading initial configuration from shared state")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Reading initial configuration from shared state")
             if let config = parseConfiguration(from: configData) {
                 contentAnalyticsState.updateConfiguration(config)
                 contentAnalyticsOrchestrator.updateConfiguration(config)
             }
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "ContentAnalytics extension registered")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "ContentAnalytics extension registered")
     }
 
     public func onUnregistered() {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "ContentAnalytics extension unregistered")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "ContentAnalytics extension unregistered")
     }
 
     // MARK: - Event Listeners
@@ -98,23 +98,23 @@ public class ContentAnalytics: NSObject, Extension {
 
     private func handleConfigurationResponse(event: Event) {
         guard let configurationData = event.data else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Configuration event has no data")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Configuration event has no data")
             return
         }
 
-        Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Received configuration")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Received configuration")
 
         if let config = parseConfiguration(from: configurationData) {
             contentAnalyticsState.updateConfiguration(config)
             contentAnalyticsOrchestrator.updateConfiguration(config)
-            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Config applied")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Config applied")
 
             if !contentAnalyticsOrchestrator.hasFeaturizationQueue() {
                 let newQueue = factory.createFeaturizationHitQueue()
                 contentAnalyticsOrchestrator.initializeFeaturizationQueueIfNeeded(queue: newQueue)
             }
         } else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Invalid config data")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Invalid config data")
         }
     }
 
@@ -127,14 +127,14 @@ public class ContentAnalytics: NSObject, Extension {
         // Update privacy validator cache when Hub or Consent shared states change
         if stateOwner == ContentAnalyticsConstants.ExternalExtensions.EVENT_HUB ||
            stateOwner == ContentAnalyticsConstants.ExternalExtensions.CONSENT {
-            Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Shared state changed for \(stateOwner) - updating privacy validator cache")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Shared state changed for \(stateOwner) - updating privacy validator cache")
             privacyValidator.updateSharedStateCache()
         }
     }
 
     private func handleConsentChange(event: Event) {
         guard let consentData = event.data else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Consent event has no data")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Consent event has no data")
             return
         }
 
@@ -143,18 +143,18 @@ public class ContentAnalytics: NSObject, Extension {
            let collect = consents["collect"] as? [String: Any],
            let val = collect["val"] as? String {
 
-            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Consent collect preference: \(val)")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Consent collect preference: \(val)")
 
             // Clear pending events if user opts out (Edge would drop them anyway)
             if val == "n" || val == "no" {
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Collect consent denied - clearing pending batch")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Collect consent denied - clearing pending batch")
                 contentAnalyticsOrchestrator.clearPendingBatch()
             }
         }
     }
 
     private func handleIdentityReset(event: Event) {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Identity reset - clearing state")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Identity reset - clearing state")
 
         // Clear state (configuration, sent experience definitions)
         contentAnalyticsState.reset()
@@ -162,23 +162,23 @@ public class ContentAnalytics: NSObject, Extension {
         // Flush any pending batch (don't send after identity reset)
         contentAnalyticsOrchestrator.clearPendingBatch()
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Identity reset complete")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Identity reset complete")
     }
 
     // MARK: - Event Handler
 
     private func handleContentAnalyticsEvent(event: Event) {
-        Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Received event | Name: \(event.name) | ID: \(event.id) | Type: \(event.type) | Data: \(event.data ?? [:])")
+        Log.trace(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Received event | Name: \(event.name) | ID: \(event.id) | Type: \(event.type) | Data: \(event.data ?? [:])")
 
         // Route to appropriate handler (consent checked by Edge extension)
         if event.isExperienceEvent {
-            Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Routing to experience tracking")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Routing to experience tracking")
             handleExperienceTrackingEvent(event)
         } else if event.isAssetEvent {
-            Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "Routing to asset tracking")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Routing to asset tracking")
             handleAssetTrackingEvent(event)
         } else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Unknown event: \(event.name)")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Unknown event: \(event.name)")
         }
     }
 
@@ -187,10 +187,10 @@ public class ContentAnalytics: NSObject, Extension {
             switch result {
             case .success:
                 if let assetURL = event.assetURL {
-                    Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Asset event: \(event.name) - \(assetURL)")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Asset event: \(event.name) - \(assetURL)")
                 }
             case .failure(let error):
-                Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Asset event processing failed: \(event.name) - \(error)")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Asset event processing failed: \(event.name) - \(error)")
             }
         }
     }
@@ -200,10 +200,10 @@ public class ContentAnalytics: NSObject, Extension {
             switch result {
             case .success:
                 if let experienceId = event.experienceId {
-                    Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Experience event: \(event.name) - \(experienceId)")
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Experience event: \(event.name) - \(experienceId)")
                 }
             case .failure(let error):
-                Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Experience event processing failed: \(event.name) - \(error)")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Experience event processing failed: \(event.name) - \(error)")
             }
         }
     }
@@ -211,15 +211,15 @@ public class ContentAnalytics: NSObject, Extension {
     private func handleApplicationPauseOrClose(event: Event) {
         // Only flush if batching is enabled (otherwise events are sent immediately)
         guard contentAnalyticsState.batchingEnabled else {
-            Log.trace(label: ContentAnalyticsConstants.LOG_TAG, "App backgrounded but batching disabled - no flush needed")
+            Log.trace(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "App backgrounded but batching disabled - no flush needed")
             return
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "App backgrounded - flushing pending batch")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "App backgrounded - flushing pending batch")
 
         contentAnalyticsOrchestrator.sendPendingEvents()
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Background flush complete")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Background flush complete")
     }
 
     // MARK: - Helpers
@@ -231,7 +231,7 @@ public class ContentAnalytics: NSObject, Extension {
     // MARK: - Configuration Parsing
 
     private func parseConfiguration(from configData: [String: Any]) -> ContentAnalyticsConfiguration? {
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Parsing configuration | Keys: \(configData.keys)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Parsing configuration | Keys: \(configData.keys)")
 
         // Map Adobe standard keys to ContentAnalytics property names
         var mappedConfig: [String: Any] = [:]
@@ -247,20 +247,20 @@ public class ContentAnalytics: NSObject, Extension {
             switch strippedKey {
             case "edge.domain":
                 mappedKey = "edgeDomain"
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped: edge.domain -> edgeDomain = \(value)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped: edge.domain -> edgeDomain = \(value)")
             case "edge.configId":
                 // Skip edge.configId - it's for the main app, not Content Analytics
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Skipping: edge.configId (main app datastream)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Skipping: edge.configId (main app datastream)")
                 continue
             case "configId":
                 // contentanalytics.configId → datastreamId (aligns with edge.configId naming)
                 mappedKey = "datastreamId"
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped: contentanalytics.configId -> datastreamId = \(value)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped: contentanalytics.configId -> datastreamId = \(value)")
             case "edge.environment":
                 mappedKey = "edgeEnvironment"
             case "experienceCloud.org":
                 mappedKey = "experienceCloudOrgId"
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped: experienceCloud.org -> experienceCloudOrgId = \(value)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped: experienceCloud.org -> experienceCloudOrgId = \(value)")
             default:
                 mappedKey = strippedKey
             }
@@ -268,17 +268,17 @@ public class ContentAnalytics: NSObject, Extension {
             mappedConfig[mappedKey] = value
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Mapped config keys: \(mappedConfig.keys)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped config keys: \(mappedConfig.keys)")
 
         // Convert to JSON data and decode
         guard let jsonData = try? JSONSerialization.data(withJSONObject: mappedConfig),
               let config = try? JSONDecoder().decode(ContentAnalyticsConfiguration.self, from: jsonData) else {
-            Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Failed to decode configuration")
+            Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Failed to decode configuration")
             return nil
         }
 
         let configSummary = "trackExperiences: \(config.trackExperiences) | edgeDomain: \(config.edgeDomain ?? "nil") | org: \(config.experienceCloudOrgId ?? "nil")"
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Config parsed | \(configSummary) | datastream: \(config.datastreamId ?? "nil")")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Config parsed | \(configSummary) | datastream: \(config.datastreamId ?? "nil")")
 
         return config
     }

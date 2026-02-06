@@ -123,7 +123,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
 
     func getFeaturizationBaseUrl() -> String? {
         guard let domain = edgeDomain, !domain.isEmpty else {
-            Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Cannot construct featurization URL - Edge domain not configured")
+            Log.debug(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Cannot construct featurization URL - Edge domain not configured")
             return nil
         }
 
@@ -138,7 +138,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
             source = "default fallback"
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Featurization URL | Domain: \(domain) | Region: \(resolvedRegion) | Source: \(source)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Featurization URL | Domain: \(domain) | Region: \(resolvedRegion) | Source: \(source)")
 
         // Ensure https:// prefix
         let baseUrl = domain.hasPrefix("http") ? domain : "https://\(domain)"
@@ -173,10 +173,10 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         if let pattern = excludedAssetLocationsRegexp, !pattern.isEmpty {
             do {
                 compiledAssetLocationRegex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Compiled asset location exclusion regex: \(pattern)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Compiled asset location exclusion regex: \(pattern)")
             } catch {
                 compiledAssetLocationRegex = nil
-                Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Invalid asset location exclusion regex: '\(pattern)' - Error: \(error.localizedDescription)")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Invalid asset location exclusion regex: '\(pattern)' - Error: \(error.localizedDescription)")
             }
         } else {
             compiledAssetLocationRegex = nil
@@ -185,10 +185,10 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         if let pattern = excludedAssetUrlsRegexp, !pattern.isEmpty {
             do {
                 compiledAssetUrlRegex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Compiled asset URL exclusion regex: \(pattern)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Compiled asset URL exclusion regex: \(pattern)")
             } catch {
                 compiledAssetUrlRegex = nil
-                Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Invalid asset URL exclusion regex: '\(pattern)' - Error: \(error.localizedDescription)")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Invalid asset URL exclusion regex: '\(pattern)' - Error: \(error.localizedDescription)")
             }
         } else {
             compiledAssetUrlRegex = nil
@@ -197,10 +197,10 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         if let pattern = excludedExperienceLocationsRegexp, !pattern.isEmpty {
             do {
                 compiledExperienceLocationRegex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-                Log.debug(label: ContentAnalyticsConstants.LOG_TAG, "Compiled experience location exclusion regex: \(pattern)")
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Compiled experience location exclusion regex: \(pattern)")
             } catch {
                 compiledExperienceLocationRegex = nil
-                Log.warning(label: ContentAnalyticsConstants.LOG_TAG, "Invalid experience location exclusion regex: '\(pattern)' - Error: \(error.localizedDescription)")
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.CONFIG, "Invalid experience location exclusion regex: '\(pattern)' - Error: \(error.localizedDescription)")
             }
         } else {
             compiledExperienceLocationRegex = nil

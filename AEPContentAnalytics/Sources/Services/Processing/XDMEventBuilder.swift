@@ -125,7 +125,7 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
             assetData["assetExtras"] = stringifyExtras(assetExtras)
         }
 
-        Log.debug(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "🔑 AssetID: \(assetURL) | Source: \(assetLocation.isEmpty ? "(empty)" : assetLocation)")
+        Log.debug(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "AssetID: \(assetURL) | Source: \(assetLocation.isEmpty ? "(empty)" : assetLocation)")
 
         return assetData
     }
