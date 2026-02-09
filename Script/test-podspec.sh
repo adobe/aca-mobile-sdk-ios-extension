@@ -1,24 +1,30 @@
 #!/bin/bash
 set -e
 PROJECT_NAME=TestProject
+
+# Run from repo root so path to podspec is correct.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
 # Clean up.
 rm -rf $PROJECT_NAME
 mkdir -p $PROJECT_NAME && cd $PROJECT_NAME
 swift package init
-# Use Xcodegen to generate the project (iOS).
-echo "
+# Use Xcodegen to generate the project (iOS). YAML requires indentation for nested keys.
+cat > project.yml << YAML_EOF
 name: $PROJECT_NAME
 options:
-bundleIdPrefix: $PROJECT_NAME
+  bundleIdPrefix: $PROJECT_NAME
 targets:
-$PROJECT_NAME:
-type: framework
-sources: Sources
-platform: iOS
-deploymentTarget: \"15.0\"
-settings:
-GENERATE_INFOPLIST_FILE: YES
-" >>project.yml
+  $PROJECT_NAME:
+    type: framework
+    sources: Sources
+    platform: iOS
+    deploymentTarget: "15.0"
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+YAML_EOF
 xcodegen generate
 # Create a Podfile with our pod as dependency.
 echo "
@@ -54,19 +60,19 @@ rm -rf $PROJECT_NAME
 # tvOS
 mkdir -p $PROJECT_NAME && cd $PROJECT_NAME
 swift package init
-echo "
+cat > project.yml << YAML_EOF
 name: $PROJECT_NAME
 options:
-bundleIdPrefix: $PROJECT_NAME
+  bundleIdPrefix: $PROJECT_NAME
 targets:
-$PROJECT_NAME:
-type: framework
-sources: Sources
-platform: tvOS
-deploymentTarget: \"15.0\"
-settings:
-GENERATE_INFOPLIST_FILE: YES
-" >>project.yml
+  $PROJECT_NAME:
+    type: framework
+    sources: Sources
+    platform: tvOS
+    deploymentTarget: "15.0"
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+YAML_EOF
 xcodegen generate
 echo "
 platform :tvos, '15.0'

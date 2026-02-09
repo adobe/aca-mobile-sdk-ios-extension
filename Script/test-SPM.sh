@@ -4,6 +4,12 @@ set -e
 
 PROJECT_NAME=TestProject
 
+# Run from repo root so path "../" in Package.swift resolves to the extension repo.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+echo "Running SPM integration test from: $REPO_ROOT"
+
 # Clean up.
 rm -rf $PROJECT_NAME
 
@@ -36,6 +42,12 @@ let package = Package(
     ]
 )
 PACKAGE_EOF
+
+# Ensure the test target actually uses the dependency (so the module is built and linked).
+TEST_SOURCE="Sources/TestProject/TestProject.swift"
+if [ -f "$TEST_SOURCE" ]; then
+	{ echo "import AEPContentAnalytics"; cat "$TEST_SOURCE"; } > "$TEST_SOURCE.tmp" && mv "$TEST_SOURCE.tmp" "$TEST_SOURCE"
+fi
 
 swift package update
 swift package resolve

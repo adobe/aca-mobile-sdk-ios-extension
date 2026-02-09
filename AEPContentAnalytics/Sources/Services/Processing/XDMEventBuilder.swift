@@ -199,7 +199,6 @@ class XDMEventBuilder: XDMEventBuilderProtocol {
         let xdmEvent = createBaseXDMEvent(experienceContent: experienceContent)
 
         // TRACE: Full experience interaction payload
-        let hasExtras = metrics["experienceExtras"] != nil
         let summary = "ID: \(experienceId) | Type: \(interactionType.stringValue) | Assets: \(assetsData.count)"
         Log.trace(label: ContentAnalyticsConstants.LogLabels.XDM_BUILDER, "Experience INTERACTION Payload | \(summary)")
 

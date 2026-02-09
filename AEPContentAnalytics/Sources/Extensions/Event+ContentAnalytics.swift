@@ -121,7 +121,7 @@ public extension Event {
     }
 
     /// Extract experience definition data from event (returns nil if incomplete)
-    public func extractExperienceDefinitionData() -> ExperienceDefinitionData? {
+    func extractExperienceDefinitionData() -> ExperienceDefinitionData? {
         guard let experienceId = experienceId,
               let assets = experienceAssetURLs,
               let texts = experienceTextContent else {

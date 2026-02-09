@@ -55,7 +55,7 @@ public class ContentItem: NSObject, Codable {
 
         // Decode styles as [String: Any]
         if let stylesData = try? container.decode([String: AnyCodable].self, forKey: .styles) {
-            styles = stylesData.mapValues { $0.value }
+            styles = stylesData.mapValues { $0.value as Any }
         } else {
             styles = [:]
         }
