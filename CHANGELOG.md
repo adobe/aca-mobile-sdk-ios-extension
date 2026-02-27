@@ -7,6 +7,14 @@
 
 ---
 
+## 5.0.0 (February 9, 2026)
+
+### General Availability
+
+First stable release. Includes all features from 5.0.0-beta.1.
+
+---
+
 ## 5.0.0-beta.1 (January 26, 2026)
 
 ### Initial Beta Release
