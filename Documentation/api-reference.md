@@ -199,55 +199,74 @@ ContentAnalytics.trackExperienceClick(
 
 ## Objective-C API
 
-All Swift APIs have Objective-C equivalents.
+All Swift APIs have Objective-C equivalents. The class is exposed as `AEPContentAnalytics` in Objective-C (via `@objc(AEPContentAnalytics)`).
 
 ### Asset Tracking
 
 ```objective-c
 // Track view (convenience method)
-[ContentAnalytics trackAssetViewWithAssetURL:@"https://example.com/hero.jpg"
+[AEPContentAnalytics trackAssetViewWithAssetURL:@"https://example.com/hero.jpg"
                                assetLocation:@"home.hero"
                               additionalData:nil];
 
 // Track click (convenience method)
-[ContentAnalytics trackAssetClickWithAssetURL:@"https://example.com/button.jpg"
+[AEPContentAnalytics trackAssetClickWithAssetURL:@"https://example.com/button.jpg"
                                 assetLocation:@"home.cta"
                                additionalData:nil];
 
 // Using InteractionType enum directly (AEPInteractionType)
-[ContentAnalytics trackAsset:@"https://example.com/image.jpg"
+[AEPContentAnalytics trackAsset:@"https://example.com/image.jpg"
               interactionType:AEPInteractionTypeView
                 assetLocation:@"home"
                additionalData:nil];
 
 // Or with click
-[ContentAnalytics trackAsset:@"https://example.com/banner.jpg"
+[AEPContentAnalytics trackAsset:@"https://example.com/banner.jpg"
               interactionType:AEPInteractionTypeClick
                 assetLocation:@"home.banner"
                additionalData:nil];
 ```
 
 The `InteractionType` enum is Objective-C compatible:
-- `AEPInteractionTypeView` (0)
-- `AEPInteractionTypeClick` (1)
+- `AEPInteractionTypeDefinition` (0) — for experience registration only
+- `AEPInteractionTypeView` (1)
+- `AEPInteractionTypeClick` (2)
 
 ### Experience Tracking
 
 ```objective-c
-// Register experience
-NSString *expId = [ContentAnalytics 
-    registerExperienceWithAssetURLs:@[@"https://example.com/product.jpg"]
-                              texts:@[@"Product Name", @"$99.99"]
-                               ctas:@[@"Add to Cart"]
-                experienceLocation:@"product.detail"];
+// Register experience — use AEPContentItem for assets, texts, and ctas
+AEPContentItem *assetItem = [[AEPContentItem alloc] initWithValue:@"https://example.com/product.jpg"
+                                                        stylesDict:nil];
+AEPContentItem *headlineItem = [[AEPContentItem alloc] initWithValue:@"Product Name"
+                                                         stylesDict:@{@"role": @"headline"}];
+AEPContentItem *priceItem = [[AEPContentItem alloc] initWithValue:@"$99.99"
+                                                      stylesDict:@{@"role": @"price"}];
+AEPContentItem *ctaItem = [[AEPContentItem alloc] initWithValue:@"Add to Cart"
+                                                    stylesDict:@{@"enabled": @YES}];
 
-// Track view
-[ContentAnalytics trackExperienceViewWithExperienceId:expId
-                                       additionalData:nil];
+NSString *expId = [AEPContentAnalytics registerExperienceWithAssets:@[assetItem]
+                                                            texts:@[headlineItem, priceItem]
+                                                             ctas:@[ctaItem]];
+
+// Track view (experienceLocation is optional)
+[AEPContentAnalytics trackExperienceViewWithExperienceId:expId
+                                  experienceLocation:@"product.detail"
+                                     additionalData:nil];
 
 // Track click
-[ContentAnalytics trackExperienceClickWithExperienceId:expId
-                                        additionalData:nil];
+[AEPContentAnalytics trackExperienceClickWithExperienceId:expId
+                                   experienceLocation:@"product.detail"
+                                      additionalData:nil];
+```
+
+### Asset Collection Tracking
+
+```objective-c
+// Track multiple assets with the same interaction type
+[AEPContentAnalytics trackAssetCollection:@[@"https://example.com/1.jpg", @"https://example.com/2.jpg"]
+                        interactionType:AEPInteractionTypeView
+                          assetLocation:@"gallery"];
 ```
 
 ---
@@ -261,8 +280,9 @@ Interaction type enum (Objective-C compatible).
 ```swift
 @objc(AEPInteractionType)
 public enum InteractionType: Int {
-    case view = 0
-    case click = 1
+    case definition = 0  // Experience registration only
+    case view = 1
+    case click = 2
     
     public var stringValue: String { ... }
     public static func from(string: String) -> InteractionType?
@@ -279,7 +299,7 @@ ContentAnalytics.trackAsset(
 
 **Objective-C Usage:**
 ```objective-c
-[ContentAnalytics trackAsset:@"https://example.com/hero.jpg"
+[AEPContentAnalytics trackAsset:@"https://example.com/hero.jpg"
               interactionType:AEPInteractionTypeView
                 assetLocation:nil
                additionalData:nil];
@@ -287,18 +307,20 @@ ContentAnalytics.trackAsset(
 
 ### ContentItem
 
-Represents content within an experience (assets, texts, CTAs).
+Represents content within an experience (assets, texts, CTAs). Objective-C compatible as `AEPContentItem`.
 
 ```swift
-public struct ContentItem {
-    let value: String
-    let styles: [String: Any]
+@objc(AEPContentItem)
+public class ContentItem: NSObject {
+    public let value: String
+    public let styles: [String: Any]
     
-    init(value: String, styles: [String: Any])
+    public init(value: String, styles: [String: Any])
+    // Objective-C: initWithValue:stylesDict:
 }
 ```
 
-**Usage:**
+**Swift Usage:**
 ```swift
 // Asset
 ContentItem(value: "https://example.com/image.jpg", styles: [:])
@@ -309,6 +331,16 @@ ContentItem(value: "$99.99", styles: ["role": "price"])
 
 // CTA
 ContentItem(value: "Buy Now", styles: ["enabled": true])
+```
+
+**Objective-C Usage:**
+```objective-c
+AEPContentItem *asset = [[AEPContentItem alloc] initWithValue:@"https://example.com/image.jpg"
+                                                  stylesDict:nil];
+AEPContentItem *headline = [[AEPContentItem alloc] initWithValue:@"Product Title"
+                                                    stylesDict:@{@"role": @"headline"}];
+AEPContentItem *cta = [[AEPContentItem alloc] initWithValue:@"Buy Now"
+                                                stylesDict:@{@"enabled": @YES}];
 ```
 
 ---
@@ -322,7 +354,7 @@ Managed through Adobe Data Collection:
 | `configId` | String | - | Custom datastream for Content Analytics events (overrides `edge.configId`) |
 | `batchingEnabled` | Boolean | `true` | Enable batching |
 | `maxBatchSize` | Integer | `10` | Max events per batch |
-| `flushInterval` | Double | `2.0` | Flush interval (seconds) |
+| `flushInterval` / `contentanalytics.batchFlushInterval` | Double | `2000` | Flush interval in **milliseconds** (e.g. `2000` = 2s). Matches Launch extension and Android. |
 | `trackExperiences` | Boolean | `true` | Enable experiences |
 | `excludedAssetLocationsRegexp` | String | - | Asset location regex pattern (e.g., `"^(debug\|test).*"`) |
 | `excludedAssetUrlsRegexp` | String | - | Asset URL regex pattern (e.g., `".*\\.gif$\|.*\\.svg$"`) |

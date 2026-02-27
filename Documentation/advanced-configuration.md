@@ -8,7 +8,7 @@
 | `contentanalytics.trackExperiences` | Bool | `true` | Enable experience tracking |
 | `contentanalytics.batchingEnabled` | Bool | `true` | Enable batching |
 | `contentanalytics.maxBatchSize` | Int | `10` | Events before flush (1-100) |
-| `contentanalytics.batchFlushInterval` | Double | `2.0` | Seconds between flushes |
+| `contentanalytics.batchFlushInterval` | Double | `2000` | Milliseconds between flushes |
 | `contentanalytics.excludedAssetUrlsRegexp` | String | - | Exclude assets by URL |
 | `contentanalytics.excludedAssetLocationsRegexp` | String | - | Exclude assets by location |
 | `contentanalytics.excludedExperienceLocationsRegexp` | String | - | Exclude experiences by location |
@@ -18,7 +18,7 @@
 ```swift
 MobileCore.updateConfigurationWith(configDict: [
     "contentanalytics.maxBatchSize": 20,
-    "contentanalytics.batchFlushInterval": 5.0
+    "contentanalytics.batchFlushInterval": 5000
 ])
 ```
 
@@ -45,14 +45,14 @@ If `contentanalytics.configId` is not set, uses `edge.configId`.
 
 Flush triggers:
 - Batch reaches `maxBatchSize`
-- Timer reaches `batchFlushInterval`
+- Timer reaches `batchFlushInterval` (ms)
 - App backgrounds
 
 ```json
 {
   "contentanalytics.batchingEnabled": true,
   "contentanalytics.maxBatchSize": 10,
-  "contentanalytics.batchFlushInterval": 2.0
+  "contentanalytics.batchFlushInterval": 2000
 }
 ```
 
@@ -142,13 +142,13 @@ Payload sent:
 
 ## Tuning Batch Settings
 
-The default settings (`maxBatchSize: 10`, `flushInterval: 2s`) work well for most apps. Adjust based on your event volume:
+The default settings (`maxBatchSize: 10`, `batchFlushInterval: 2000` ms) work well for most apps. Adjust based on your event volume:
 
-| Events per Minute | maxBatchSize | flushInterval | Notes |
-|-------------------|--------------|---------------|-------|
-| < 10 | 10 (default) | 2s (default) | Default works well |
-| 10-50 | 15-25 | 3s | Reduces network calls |
-| > 50 | 25-50 | 5s | High-volume optimization |
+| Events per Minute | maxBatchSize | batchFlushInterval (ms) | Notes |
+|-------------------|--------------|-------------------------|-------|
+| < 10 | 10 (default) | 2000 (default) | Default works well |
+| 10-50 | 15-25 | 3000 | Reduces network calls |
+| > 50 | 25-50 | 5000 | High-volume optimization |
 
 **Trade-off:** Larger batches reduce network overhead but increase latency before data appears in reporting.
 

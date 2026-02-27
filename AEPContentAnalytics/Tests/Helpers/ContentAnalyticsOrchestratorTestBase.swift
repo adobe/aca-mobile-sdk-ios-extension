@@ -137,7 +137,7 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
     // MARK: - Helper Methods
 
     /// Updates configuration with batching enabled
-    func enableBatching(maxBatchSize: Int = 10, flushInterval: TimeInterval = 5.0) {
+    func enableBatching(maxBatchSize: Int = 10, flushInterval: Double = 5000.0) {
         var config = ContentAnalyticsConfiguration()
         config.batchingEnabled = true
         config.maxBatchSize = maxBatchSize

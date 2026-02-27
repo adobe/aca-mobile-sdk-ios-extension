@@ -12,15 +12,16 @@
 
 import Foundation
 
-/// Configuration for batching behavior
+/// Configuration for batching behavior.
+/// All time values in milliseconds (matches Android and Launch extension).
 struct BatchingConfiguration {
     let maxBatchSize: Int
-    let flushInterval: TimeInterval
-    let maxWaitTime: TimeInterval
+    let flushIntervalMs: Double
+    let maxWaitTimeMs: Double
 
     static let `default` = BatchingConfiguration(
         maxBatchSize: ContentAnalyticsConstants.DEFAULT_BATCH_SIZE,
-        flushInterval: ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL,
-        maxWaitTime: ContentAnalyticsConstants.DEFAULT_MAX_WAIT_TIME
+        flushIntervalMs: ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL_MS,
+        maxWaitTimeMs: ContentAnalyticsConstants.DEFAULT_MAX_WAIT_TIME_MS
     )
 }

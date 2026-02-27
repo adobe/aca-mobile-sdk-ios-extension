@@ -245,8 +245,8 @@ class BatchCoordinator: BatchCoordinating {
 
         // Check if we've exceeded the maximum wait time
         if let firstTime = firstTrackingTime {
-            let timeElapsed = Date().timeIntervalSince(firstTime)
-            if timeElapsed >= configuration.maxWaitTime {
+            let timeElapsedMs = Date().timeIntervalSince(firstTime) * 1000.0
+            if timeElapsedMs >= configuration.maxWaitTimeMs {
                 performFlush()
                 return
             }
@@ -266,7 +266,7 @@ class BatchCoordinator: BatchCoordinating {
         }
 
         // Update flush interval if it changed and we have a pending flush
-        if newConfiguration.flushInterval != oldConfiguration.flushInterval &&
+        if newConfiguration.flushIntervalMs != oldConfiguration.flushIntervalMs &&
            batchFlushWorkItem != nil {
             scheduleBatchFlush()
         }
@@ -295,20 +295,20 @@ class BatchCoordinator: BatchCoordinating {
 
     /// Schedule automatic batch flush using dispatch queue (no cross-queue timer issues)
     private func scheduleBatchFlush() {
-        let interval = configuration.flushInterval
-        
+        let intervalMs = Int(configuration.flushIntervalMs)
+
         // Cancel any existing scheduled flush
         batchFlushWorkItem?.cancel()
-        
+
         // Create new work item for flush
         let workItem = DispatchWorkItem { [weak self] in
             self?.performFlush()
         }
-        
+
         batchFlushWorkItem = workItem
-        
+
         // Schedule on same queue to avoid cross-queue issues
-        batchQueue.asyncAfter(deadline: .now() + interval, execute: workItem)
+        batchQueue.asyncAfter(deadline: .now() + .milliseconds(intervalMs), execute: workItem)
     }
 
     // MARK: - Persistence

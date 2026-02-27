@@ -271,8 +271,8 @@ final class ContentAnalyticsOrchestratorConfigurationTests: ContentAnalyticsOrch
         // When - Update configuration with different batch size
         let newBatchConfig = BatchingConfiguration(
             maxBatchSize: 5,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0
+            flushIntervalMs: 2000,
+            maxWaitTimeMs: 5000
         )
         mockBatchCoordinator.updateConfiguration(newBatchConfig)
 

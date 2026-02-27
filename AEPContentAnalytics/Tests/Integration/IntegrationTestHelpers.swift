@@ -242,7 +242,7 @@ class ContentAnalyticsIntegrationTestBase: XCTestCase {
         var config = ContentAnalyticsConfiguration()
         config.batchingEnabled = true
         config.maxBatchSize = configuration.maxBatchSize
-        config.batchFlushInterval = configuration.flushInterval
+        config.batchFlushInterval = configuration.flushIntervalMs
         stateManager.updateConfiguration(config)
 
         let coordinator = BatchCoordinator(

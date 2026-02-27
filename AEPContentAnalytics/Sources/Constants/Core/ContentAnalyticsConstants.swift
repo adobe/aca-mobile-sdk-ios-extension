@@ -37,17 +37,17 @@ enum ContentAnalyticsConstants {
     /// Maximum allowed batch size
     static let MAX_BATCH_SIZE = 100
     
-    /// Default batch flush interval (seconds)
-    static let DEFAULT_FLUSH_INTERVAL: TimeInterval = 2.0
+    /// Default batch flush interval (milliseconds)
+    static let DEFAULT_FLUSH_INTERVAL_MS: Double = 2000.0
     
-    /// Default maximum wait time (seconds)
-    static let DEFAULT_MAX_WAIT_TIME: TimeInterval = 5.0
+    /// Default maximum wait time (milliseconds)
+    static let DEFAULT_MAX_WAIT_TIME_MS: Double = 5000.0
     
     /// Multiplier for calculating max wait time from flush interval
     static let MAX_WAIT_TIME_MULTIPLIER: Double = 2.5
 
     /// Extension version
-    static let EXTENSION_VERSION = "5.0.0"
+    static let EXTENSION_VERSION = "5.0.1"
 
     /// Extension friendly name
     static let FRIENDLY_NAME = "Content Analytics"

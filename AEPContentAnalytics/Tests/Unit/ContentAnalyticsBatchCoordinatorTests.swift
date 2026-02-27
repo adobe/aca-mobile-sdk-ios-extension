@@ -317,8 +317,8 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         // When - Update to smaller batch size (should trigger flush since 8 > 5)
         let newConfig = BatchingConfiguration(
             maxBatchSize: 5,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0
+            flushIntervalMs: 2000,
+            maxWaitTimeMs: 5000
         )
         batchCoordinator.updateConfiguration(newConfig)
 
@@ -342,8 +342,8 @@ class ContentAnalyticsBatchCoordinatorTests: XCTestCase {
         // When - Update to larger batch size
         let newConfig = BatchingConfiguration(
             maxBatchSize: 20,
-            flushInterval: 2.0,
-            maxWaitTime: 5.0
+            flushIntervalMs: 2000,
+            maxWaitTimeMs: 5000
         )
         batchCoordinator.updateConfiguration(newConfig)
 
