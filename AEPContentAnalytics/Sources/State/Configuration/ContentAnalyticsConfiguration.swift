@@ -20,8 +20,8 @@ enum ContentAnalyticsDefaults {
     /// Events to collect before flush (balances network efficiency vs data freshness)
     static let maxBatchSize: Int = ContentAnalyticsConstants.DEFAULT_BATCH_SIZE
 
-    /// Seconds between batch flushes
-    static let batchFlushInterval: TimeInterval = ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL
+    /// Batch flush interval in milliseconds (default 2000)
+    static let batchFlushInterval: Double = ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL_MS
 }
 
 /// Configuration for ContentAnalytics extension
@@ -57,7 +57,8 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
 
     var batchingEnabled: Bool = true
     var maxBatchSize: Int = ContentAnalyticsDefaults.maxBatchSize
-    var batchFlushInterval: TimeInterval = ContentAnalyticsDefaults.batchFlushInterval
+    /// Batch flush interval in milliseconds (aligns with Launch extension and Android)
+    var batchFlushInterval: Double = ContentAnalyticsDefaults.batchFlushInterval
 
     // MARK: - Performance Settings
 
@@ -237,7 +238,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         featurizationRetryDelay = try container.decodeIfPresent(TimeInterval.self, forKey: .featurizationRetryDelay) ?? 0.5
         batchingEnabled = try container.decodeIfPresent(Bool.self, forKey: .batchingEnabled) ?? true
         maxBatchSize = try container.decodeIfPresent(Int.self, forKey: .maxBatchSize) ?? ContentAnalyticsConstants.DEFAULT_BATCH_SIZE
-        batchFlushInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .batchFlushInterval) ?? ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL
+        batchFlushInterval = try container.decodeIfPresent(Double.self, forKey: .batchFlushInterval) ?? ContentAnalyticsConstants.DEFAULT_FLUSH_INTERVAL_MS
         debugLogging = try container.decodeIfPresent(Bool.self, forKey: .debugLogging) ?? false
 
         version = try container.decodeIfPresent(String.self, forKey: .version) ?? ContentAnalyticsConstants.EXTENSION_VERSION
@@ -270,7 +271,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
                     newConfig.maxBatchSize = min(size, ContentAnalyticsConstants.MAX_BATCH_SIZE)
                 }
             case "batchFlushInterval":
-                if let interval = value as? TimeInterval, interval > 0 {
+                if let interval = value as? Double, interval > 0 {
                     newConfig.batchFlushInterval = interval
                 } else if let number = value as? NSNumber, number.doubleValue > 0 {
                     newConfig.batchFlushInterval = number.doubleValue
@@ -337,10 +338,11 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
     }
 
     func toBatchingConfiguration() -> BatchingConfiguration {
+        let maxWaitTimeMs = batchFlushInterval * ContentAnalyticsConstants.MAX_WAIT_TIME_MULTIPLIER
         return BatchingConfiguration(
             maxBatchSize: maxBatchSize,
-            flushInterval: batchFlushInterval,
-            maxWaitTime: batchFlushInterval * ContentAnalyticsConstants.MAX_WAIT_TIME_MULTIPLIER
+            flushIntervalMs: batchFlushInterval,
+            maxWaitTimeMs: maxWaitTimeMs
         )
     }
 }

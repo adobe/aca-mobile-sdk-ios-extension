@@ -1,5 +1,12 @@
 # Release Notes
 
+## 5.0.1 (February 23, 2026)
+
+### Bug Fixes
+- **Batching configuration alignment:** `batchFlushInterval` and `maxWaitTime` now use milliseconds  matching the Launch extension. Use `2000` for 2 seconds (was previously seconds ).
+
+---
+
 ## 5.0.0-beta.1 (January 26, 2026)
 
 ### Initial Beta Release

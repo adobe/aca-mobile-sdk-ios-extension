@@ -176,15 +176,13 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 {
   "contentanalytics.batchingEnabled": true,
   "contentanalytics.maxBatchSize": 10,
-  "contentanalytics.flushInterval": 2.0,
-  "contentanalytics.maxWaitTime": 5.0
+  "contentanalytics.batchFlushInterval": 2000
 }
 ```
 
 **Parameters:**
 - `maxBatchSize`: Event count threshold (default: 10)
-- `flushInterval`: Timer interval for periodic flush (default: 2s)
-- `maxWaitTime`: Maximum time to hold events (default: 5s)
+- `batchFlushInterval`: Timer interval for periodic flush in milliseconds (default: 2000 ms = 2s). Max wait time is derived from this (2.5× = 5000 ms).
 - `batchingEnabled`: Set to `false` for immediate dispatch (no batching)
 
 ## Performance Characteristics
@@ -363,4 +361,4 @@ Content Analytics batches events for 0-5 seconds before dispatch. Without disk p
 ---
 
 **Last Updated:** 2026-01-29  
-**Version:** 5.0.0
+**Version:** 5.0.1

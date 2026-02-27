@@ -352,7 +352,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,  // Use shorter interval for faster tests
+            "contentanalytics.batchFlushInterval": 500,  // Use shorter interval for faster tests (ms)
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -394,7 +394,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,
+            "contentanalytics.batchFlushInterval": 500,
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -436,7 +436,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,
+            "contentanalytics.batchFlushInterval": 500,
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -542,7 +542,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,
+            "contentanalytics.batchFlushInterval": 500,
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -604,7 +604,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,
+            "contentanalytics.batchFlushInterval": 500,
             "contentanalytics.trackExperiences": true
         ])
         mockRuntime.resetDispatchedEventAndCreatedSharedStates()
@@ -632,7 +632,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,
+            "contentanalytics.batchFlushInterval": 500,
             "contentanalytics.trackExperiences": true
         ])
 
@@ -690,7 +690,7 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         sendConfiguration([
             "contentanalytics.batchingEnabled": true,
             "contentanalytics.maxBatchSize": 2,
-            "contentanalytics.batchFlushInterval": 0.5,
+            "contentanalytics.batchFlushInterval": 500,
             "contentanalytics.trackExperiences": true
         ])
 

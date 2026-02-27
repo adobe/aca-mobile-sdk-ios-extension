@@ -40,8 +40,8 @@ final class BatchCoordinatorIntegrationTests: ContentAnalyticsIntegrationTestBas
         // Create coordinator with real persistence
         let config = BatchingConfiguration(
             maxBatchSize: 3,
-            flushInterval: 10.0, // Long interval so tests control flushing
-            maxWaitTime: 20.0
+            flushIntervalMs: 10000, // Long interval so tests control flushing
+            maxWaitTimeMs: 20000
         )
         coordinator = createTestBatchCoordinator(configuration: config)
 

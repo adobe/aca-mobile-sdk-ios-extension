@@ -113,18 +113,18 @@ enum TestDataBuilder {
     /// Creates a test BatchingConfiguration
     /// - Parameters:
     ///   - maxBatchSize: Maximum batch size
-    ///   - flushInterval: Flush interval in seconds
-    ///   - maxWaitTime: Maximum wait time in seconds
+    ///   - flushIntervalMs: Flush interval in milliseconds
+    ///   - maxWaitTimeMs: Maximum wait time in milliseconds
     /// - Returns: BatchingConfiguration object
     static func buildBatchingConfiguration(
         maxBatchSize: Int = 10,
-        flushInterval: TimeInterval = 2.0,
-        maxWaitTime: TimeInterval = 5.0
+        flushIntervalMs: Double = 2000,
+        maxWaitTimeMs: Double = 5000
     ) -> BatchingConfiguration {
         return BatchingConfiguration(
             maxBatchSize: maxBatchSize,
-            flushInterval: flushInterval,
-            maxWaitTime: maxWaitTime
+            flushIntervalMs: flushIntervalMs,
+            maxWaitTimeMs: maxWaitTimeMs
         )
     }
 
@@ -134,7 +134,7 @@ enum TestDataBuilder {
     /// - Parameters:
     ///   - batchingEnabled: Whether batching is enabled
     ///   - maxBatchSize: Maximum batch size
-    ///   - batchFlushInterval: Flush interval in seconds
+    ///   - batchFlushInterval: Flush interval in milliseconds
     ///   - excludedAssetUrlsRegexp: Asset URL regex pattern to exclude
     ///   - excludedExperienceLocationsRegexp: Experience location regex pattern to exclude
     ///   - trackExperiences: Whether to track experiences
@@ -142,7 +142,7 @@ enum TestDataBuilder {
     static func buildConfiguration(
         batchingEnabled: Bool = true,
         maxBatchSize: Int = 10,
-        batchFlushInterval: TimeInterval = 2.0,
+        batchFlushInterval: Double = 2000,
         excludedAssetUrlsRegexp: String? = nil,
         excludedExperienceLocationsRegexp: String? = nil,
         trackExperiences: Bool = true
