@@ -44,6 +44,7 @@ If `contentanalytics.configId` is not set, uses `edge.configId`.
 ## Batching
 
 Flush triggers:
+
 - Batch reaches `maxBatchSize`
 - Timer reaches `batchFlushInterval` (ms)
 - App backgrounds
@@ -161,6 +162,7 @@ MobileCore.setLogLevel(.debug)
 ```
 
 Log tags:
+
 - `[ContentAnalytics]` - main
 - `[ContentAnalytics.Batch]` - batching
 - `[ContentAnalytics.Featurization]` - ML service

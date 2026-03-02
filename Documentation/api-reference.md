@@ -20,6 +20,7 @@ static func trackAsset(
 ```
 
 **Parameters:**
+
 - `assetURL`: Asset URL being tracked
 - `interactionType`: `.view` or `.click` (default: `.view`)
 - `assetLocation`: Optional semantic location (e.g., "home.hero", "product.gallery")
@@ -28,6 +29,7 @@ static func trackAsset(
 > **Note:** All `additionalData` values are converted to strings before being sent to AEP. You can pass any type (String, Int, Double, Bool, nested objects), but they will be stringified in the XDM payload.
 
 **Example:**
+
 ```swift
 // With default view
 ContentAnalytics.trackAsset(
@@ -59,11 +61,13 @@ static func trackAssetView(
 ```
 
 **Parameters:**
+
 - `assetURL`: The URL of the asset being tracked
 - `assetLocation`: (Optional) Semantic location identifier
 - `additionalData`: (Optional) Additional custom data
 
 **Example:**
+
 ```swift
 ContentAnalytics.trackAssetView(
     assetURL: "https://example.com/hero.jpg",
@@ -86,11 +90,13 @@ static func trackAssetClick(
 ```
 
 **Parameters:**
+
 - `assetURL`: The URL of the asset being clicked
 - `assetLocation`: (Optional) Semantic location identifier
 - `additionalData`: (Optional) Additional custom data
 
 **Example:**
+
 ```swift
 ContentAnalytics.trackAssetClick(
     assetURL: "https://example.com/button.jpg",
@@ -117,6 +123,7 @@ static func registerExperience(
 ```
 
 **Parameters:**
+
 - `assets`: Asset content items (URLs)
 - `texts`: Text content items
 - `ctas`: (Optional) Button/CTA content items
@@ -126,6 +133,7 @@ static func registerExperience(
 > **Note:** Call before `trackExperienceView`/`trackExperienceClick`. Registration is idempotent.
 
 **Example:**
+
 ```swift
 let expId = ContentAnalytics.registerExperience(
     assets: [ContentItem(value: "https://example.com/product.jpg", styles: [:])],
@@ -154,11 +162,13 @@ static func trackExperienceView(
 ```
 
 **Parameters:**
+
 - `experienceId`: ID from `registerExperience()`
 - `experienceLocation`: (Optional) Where the experience was viewed
 - `additionalData`: (Optional) Custom data
 
 **Example:**
+
 ```swift
 ContentAnalytics.trackExperienceView(
     experienceId: expId,
@@ -182,11 +192,13 @@ static func trackExperienceClick(
 ```
 
 **Parameters:**
+
 - `experienceId`: ID from `registerExperience()`
 - `experienceLocation`: (Optional) Where the click occurred
 - `additionalData`: (Optional) Custom data
 
 **Example:**
+
 ```swift
 ContentAnalytics.trackExperienceClick(
     experienceId: expId,
@@ -228,14 +240,15 @@ All Swift APIs have Objective-C equivalents. The class is exposed as `AEPContent
 ```
 
 The `InteractionType` enum is Objective-C compatible:
-- `AEPInteractionTypeDefinition` (0) — for experience registration only
+
+- `AEPInteractionTypeDefinition` (0) - for experience registration only
 - `AEPInteractionTypeView` (1)
 - `AEPInteractionTypeClick` (2)
 
 ### Experience Tracking
 
 ```objective-c
-// Register experience — use AEPContentItem for assets, texts, and ctas
+// Register experience - use AEPContentItem for assets, texts, and ctas
 AEPContentItem *assetItem = [[AEPContentItem alloc] initWithValue:@"https://example.com/product.jpg"
                                                         stylesDict:nil];
 AEPContentItem *headlineItem = [[AEPContentItem alloc] initWithValue:@"Product Name"
@@ -290,6 +303,7 @@ public enum InteractionType: Int {
 ```
 
 **Swift Usage:**
+
 ```swift
 ContentAnalytics.trackAsset(
     assetURL: "https://example.com/hero.jpg",
@@ -298,6 +312,7 @@ ContentAnalytics.trackAsset(
 ```
 
 **Objective-C Usage:**
+
 ```objective-c
 [AEPContentAnalytics trackAsset:@"https://example.com/hero.jpg"
               interactionType:AEPInteractionTypeView
@@ -321,6 +336,7 @@ public class ContentItem: NSObject {
 ```
 
 **Swift Usage:**
+
 ```swift
 // Asset
 ContentItem(value: "https://example.com/image.jpg", styles: [:])
@@ -334,6 +350,7 @@ ContentItem(value: "Buy Now", styles: ["enabled": true])
 ```
 
 **Objective-C Usage:**
+
 ```objective-c
 AEPContentItem *asset = [[AEPContentItem alloc] initWithValue:@"https://example.com/image.jpg"
                                                   stylesDict:nil];

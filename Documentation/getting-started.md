@@ -15,9 +15,11 @@ This guide will help you integrate the AEP Content Analytics extension into your
 
 1. In Xcode, select **File > Add Package Dependencies**
 2. Enter the package URL:
+
    ```
    https://github.com/adobe/aca-mobile-sdk-ios-extension
    ```
+
 3. Select version `5.0.0` or later
 4. Click **Add Package**
 
@@ -30,6 +32,7 @@ pod 'AEPContentAnalytics', '~> 5.0'
 ```
 
 Run:
+
 ```bash
 pod install
 ```

@@ -21,6 +21,7 @@ The AEP Content Analytics Extension enables tracking of:
 - **Experiences**: Complex UI components (hero banners, product cards, etc.)
 
 Features:
+
 - Automatic batching and aggregation
 - 100% data delivery guarantee
 - Privacy-compliant tracking

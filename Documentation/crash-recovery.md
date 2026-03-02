@@ -22,7 +22,9 @@ User tracks event
 ## Architecture Components
 
 ### BatchCoordinator
+
 **Responsibilities:**
+
 - Manages batching logic (count threshold + time-based flush)
 - Writes incoming events to disk immediately via `PersistentHitQueue`
 - Maintains in-memory event counters
@@ -30,6 +32,7 @@ User tracks event
 - Coordinates between `DirectHitProcessor` and `ContentAnalyticsOrchestrator`
 
 **Key Methods:**
+
 ```swift
 func addAssetEvent(_ event: Event)
   ├─> assetHitProcessor.accumulateEvent(event)      // Add to memory
@@ -43,12 +46,15 @@ func performFlush()
 ```
 
 ### DirectHitProcessor
+
 **Responsibilities:**
+
 - Implements `HitProcessing` protocol for `PersistentHitQueue` integration
 - Accumulates events in memory for fast batching
 - On recovery: loads events from disk into memory, then clears disk (no data loss)
 
 **Event Lifecycle:**
+
 ```swift
 func processHit(entity: DataEntity, completion: (Bool) -> Void)
   ├─> Decode event from disk
@@ -57,13 +63,16 @@ func processHit(entity: DataEntity, completion: (Bool) -> Void)
 ```
 
 ### PersistentHitQueue (AEPServices)
+
 **Provides:**
+
 - Two separate queues: `asset.events` and `experience.events`
 - SQLite-backed persistence (survives crashes, force-quit, background termination)
 - Automatic processing via `beginProcessing()`
 - Thread-safe operations
 
 **Storage:**
+
 - Events encoded as JSON via `Event: Codable`
 - Each event wrapped with type metadata (`asset` or `experience`)
 - Unique identifier: `event.id.uuidString`
@@ -94,6 +103,7 @@ Events stay on disk during the entire batching window. Once we hand off to Edge,
 ## Crash Scenarios
 
 ### Scenario 1: Crash During Batching (0-5s window)
+
 ```
 Status: Events in memory + disk
 Crash:  ⚡ App terminated
@@ -110,6 +120,7 @@ Result: ✅ ZERO DATA LOSS
 ```
 
 ### Scenario 2: Crash During Flush
+
 ```
 Status: Events being processed
 Crash:  ⚡ App terminated mid-dispatch
@@ -124,6 +135,7 @@ Result: ✅ ZERO DATA LOSS (possible duplicate if crash after Edge dispatch)
 ```
 
 ### Scenario 3: Crash After Edge Dispatch
+
 ```
 Status: Events dispatched to Edge
 Crash:  ⚡ App terminated
@@ -181,6 +193,7 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 ```
 
 **Parameters:**
+
 - `maxBatchSize`: Event count threshold (default: 10)
 - `batchFlushInterval`: Timer interval for periodic flush in milliseconds (default: 2000 ms = 2s). Max wait time is derived from this (2.5× = 5000 ms).
 - `batchingEnabled`: Set to `false` for immediate dispatch (no batching)
@@ -202,6 +215,7 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 ## Testing Crash Recovery
 
 ### Test 1: Crash During Batching
+
 ```swift
 1. Track 5 asset events
 2. DO NOT wait for flush timer
@@ -213,6 +227,7 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 ```
 
 ### Test 2: Crash During Flush
+
 ```swift
 1. Track 10 asset events (triggers immediate flush)
 2. Set breakpoint in sendToEdge()
@@ -223,6 +238,7 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 ```
 
 ### Test 3: Background Termination
+
 ```swift
 1. Track events
 2. Background app
@@ -234,17 +250,20 @@ This avoids state sync issues - we just count events on flush. If the app crashe
 ## Implementation Details
 
 ### Key Files
+
 - `BatchCoordinator.swift` - Batching logic and persistence coordination
 - `DirectHitProcessor.swift` - Crash recovery and event accumulation
 - `ContentAnalyticsOrchestrator.swift` - Metrics calculation and Edge dispatch
 - `PersistentHitQueue` (AEPServices) - SQLite-backed queue
 
 ### Thread Safety
+
 - All operations use serial dispatch queues
 - `batchQueue` (BatchCoordinator) - batch operations
 - `queue` (DirectHitProcessor) - hit processing
 
 ### Data Flow
+
 ```
 Event tracked
   └─> BatchCoordinator.addAssetEvent()
@@ -263,32 +282,32 @@ The SDK uses a callback chain to decouple components while maintaining type safe
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           INITIALIZATION PHASE                               │
+│                           INITIALIZATION PHASE                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
+│                                                                             │
 │  ContentAnalyticsFactory.createOrchestrator()                               │
-│    │                                                                         │
+│    │                                                                        │
 │    ├─> Creates BatchCoordinator(assetQueue, experienceQueue, state)         │
 │    │     └─> DirectHitProcessor initialized with no-op callbacks            │
-│    │                                                                         │
+│    │                                                                        │
 │    ├─> Creates ContentAnalyticsOrchestrator(batchCoordinator, ...)          │
-│    │                                                                         │
+│    │                                                                        │
 │    └─> Wires callbacks: batchCoordinator.setCallbacks(                      │
 │          assetCallback: orchestrator.processAssetEvents,                    │
 │          experienceCallback: orchestrator.processExperienceEvents           │
-│        )                                                                     │
-│                                                                              │
+│        )                                                                    │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                            RUNTIME DATA FLOW                                 │
+│                            RUNTIME DATA FLOW                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
+│                                                                             │
 │  User calls ContentAnalytics.trackAssetInteraction()                        │
-│    │                                                                         │
-│    v                                                                         │
-│  ┌──────────────────┐                                                        │
-│  │ BatchCoordinator │                                                        │
+│    │                                                                        │
+│    v                                                                        │
+│  ┌──────────────────┐                                                       │
+│  │ BatchCoordinator │                                                       │
 │  │  addAssetEvent() │──────────────────────────────────────────┐            │
 │  └────────┬─────────┘                                          │            │
 │           │                                                    │            │
@@ -298,16 +317,16 @@ The SDK uses a callback chain to decouple components while maintaining type safe
 │  │ accumulateEvent()  │                           │ queue() [disk]      │   │
 │  │ [memory buffer]    │                           └─────────────────────┘   │
 │  └────────┬───────────┘                                                     │
-│           │                                                                  │
+│           │                                                                 │
 │           │ (on flush trigger: count >= 10 or timer >= 2s)                  │
-│           v                                                                  │
+│           v                                                                 │
 │  ┌────────────────────────────┐                                             │
 │  │ DirectHitProcessor         │                                             │
 │  │ processAccumulatedEvents() │                                             │
 │  └────────┬───────────────────┘                                             │
-│           │                                                                  │
+│           │                                                                 │
 │           │ invokes processingCallback([events])                            │
-│           v                                                                  │
+│           v                                                                 │
 │  ┌─────────────────────────────────┐                                        │
 │  │ ContentAnalyticsOrchestrator    │                                        │
 │  │ processAssetEvents([events])    │                                        │
@@ -315,25 +334,28 @@ The SDK uses a callback chain to decouple components while maintaining type safe
 │  │   ├─> Calculate metrics         │                                        │
 │  │   └─> Build XDM payload         │                                        │
 │  └────────┬────────────────────────┘                                        │
-│           │                                                                  │
-│           v                                                                  │
+│           │                                                                 │
+│           v                                                                 │
 │  ┌───────────────────┐                                                      │
-│  │ EdgeEventDispatcher│                                                      │
+│  │ EdgeEventDispatcher│                                                     │
 │  │ dispatch()         │──────────────> Edge Network                         │
 │  └───────────────────┘                                                      │
-│                                                                              │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 Callbacks avoid circular dependencies - BatchCoordinator doesn't need to import Orchestrator. Also makes testing easier since we can inject mocks.
 
 ### Logging
+
 Enable verbose logging to debug crash recovery:
+
 ```swift
 Log.setLogLevel(.trace)
 ```
 
 Look for:
+
 ```
 [BATCH_PROCESSOR] Accumulated ASSET event | ID: <uuid>
 [BATCH_PROCESSOR] Recovered event from disk | Type: asset | ID: <uuid>

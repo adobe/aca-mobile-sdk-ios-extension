@@ -17,6 +17,7 @@ Common issues and solutions for the Content Analytics extension.
 ### Swift Package Manager: "No such module 'AEPContentAnalytics'"
 
 Package not properly resolved. Try:
+
 1. Clean build folder (**Product > Clean Build Folder** or ⇧⌘K)
 2. Reset package cache (**File > Packages > Reset Package Caches**)
 3. Rebuild
@@ -38,6 +39,7 @@ pod install --repo-update
 ### "Extension not registered"
 
 You'll see:
+
 ```
 [AEPCore] Extension 'ContentAnalytics' is not registered
 ```
@@ -58,6 +60,7 @@ MobileCore.registerExtensions([
 No events sent to Edge or logs show "Configuration unavailable".
 
 Fix:
+
 1. Verify your Launch Environment File ID in `MobileCore.configureWith(appId: "...")`
 2. Check that your Launch configuration is published
 3. Verify network connectivity
@@ -72,27 +75,33 @@ Fix:
 **Checklist:**
 
 1. **Privacy Status**
+   
    ```swift
    // Verify user has opted in
    MobileCore.setPrivacyStatus(.optedIn)
    ```
 
 2. **Edge Extension**
+   
    ```swift
    // Edge must be registered for data delivery
    MobileCore.registerExtensions([Edge.self, ContentAnalytics.self])
    ```
 
 3. **Datastream Configuration**
+   
    - Verify datastream is configured in Adobe Data Collection
    - Check datastream is enabled
    - Verify services are mapped correctly
 
 4. **Debug Logging**
+   
    ```swift
    MobileCore.setLogLevel(.debug)
    ```
+
    Look for:
+
    ```
    [ContentAnalytics] 📊 Asset view tracked
    [Edge] Sending event to Edge Network
@@ -103,16 +112,19 @@ Fix:
 **Expected Behavior:** Experience IDs are deterministic based on content.
 
 **Formula:**
+
 ```
 experienceID = "mobile-" + SHA1([...images, ...texts, ...ctas])
 ```
 
 **Troubleshooting:**
+
 - Ensure content arrays are identical for same experience
 - Order matters: `["A", "B"]` ≠ `["B", "A"]`
 - Whitespace matters: `"Hello"` ≠ `"Hello "`
 
 **Solution:**
+
 ```swift
 // Use consistent content
 let texts = ["Title", "Subtitle"].sorted()
@@ -147,14 +159,17 @@ DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
 ### Featurization requests failing
 
 **Symptoms:**
+
 ```
 [ContentAnalytics.Featurization] ⚠️ Recoverable error (503)
 ```
 
 **Solution:**
+
 This is normal for temporary outages. The extension retries automatically with exponential backoff. Requests persist to disk and survive app restarts.
 
 **If persistent (> 24 hours):**
+
 1. Check service health status
 2. Contact Adobe support
 
@@ -163,8 +178,10 @@ This is normal for temporary outages. The extension retries automatically with e
 **Cause:** Network issues or service unreachable.
 
 **Solution:**
+
 1. Verify network connectivity
 2. Check network permissions in Info.plist:
+   
    ```xml
    <key>NSAppTransportSecurity</key>
    <dict>
@@ -180,6 +197,7 @@ This is normal for temporary outages. The extension retries automatically with e
 ### Enable Verbose Logging
 
 **Option 1: Adobe Data Collection**
+
 ```json
 {
   "contentanalytics.config": {
@@ -189,6 +207,7 @@ This is normal for temporary outages. The extension retries automatically with e
 ```
 
 **Option 2: Programmatically**
+
 ```swift
 MobileCore.setLogLevel(.trace)  // Most verbose
 ```

@@ -26,6 +26,7 @@ That's it. Register first, then track views/clicks using the returned ID.
 ## Registration Required
 
 You must register an experience definition before tracking views or clicks. If you don't:
+
 - Asset attribution won't work
 - Featurization hits won't be sent
 - A warning will be logged
@@ -81,7 +82,8 @@ The SDK uses an LRU (Least Recently Used) cache with a capacity of **100 experie
 - **Eviction:** When full, least recently used definitions are removed
 - **Memory-only:** Not persisted to disk
 
-**Benefits:**
+#### Benefits
+
 - Fast lookups for asset attribution
 - Bounded memory usage (~20-40KB worst case)
 - Automatic cleanup of stale definitions
@@ -163,6 +165,7 @@ Experience IDs are deterministic - the same content always produces the same ID.
 7. Prefix with `mobile-`
 
 **Example:**
+
 ```swift
 // Content: texts=["$99", "Product"], assets=["img.jpg"], ctas=["Buy"]
 // Sorted & joined: "Product|$99|img.jpg|Buy"
@@ -170,6 +173,7 @@ Experience IDs are deterministic - the same content always produces the same ID.
 ```
 
 This means you can:
+
 - **Pre-compute IDs server-side** for consistent cross-platform IDs
 - **Cache by content hash** instead of arbitrary keys
 - **Detect content changes** by comparing IDs
@@ -194,6 +198,7 @@ If you track without registering:
 ```
 
 This means:
+
 - View/click events still go to Analytics
 - But asset attribution won't work
 - Featurization service won't get the data
@@ -246,6 +251,7 @@ ContentAnalytics.trackAssetView(assetURL: "https://example.com/hero.jpg")
 ```
 
 The asset view is still recorded, but it's not linked to any experience. You lose:
+
 - Which experience contained this asset
 - Performance metrics per experience
 - A/B test attribution
@@ -325,6 +331,7 @@ screen.section.subsection
 ```
 
 Examples:
+
 - `homepage.hero`
 - `homepage.featured`
 - `product.detail.recommendations`
@@ -621,15 +628,18 @@ Payload:
 
 ### Common Issues in Assurance
 
-**No events appearing:**
+#### No events appearing
+
 - Check extension is registered
 - Verify `MobileCore.dispatch()` is being called
 
-**Events but no Edge request:**
+#### Events but no Edge request
+
 - Check consent status (must be "yes" or "pending")
 - Wait for batch timeout (default 5s) or threshold (default 10 events)
 
-**Missing experienceId in track events:**
+#### Missing experienceId in track events
+
 - Ensure `registerExperience()` was called first
 - Check the returned ID is being passed to track methods
 
@@ -642,11 +652,13 @@ MobileCore.setLogLevel(.trace)
 ```
 
 Look for registration confirmation:
+
 ```
 [ContentAnalytics] Stored experience definition: exp-abc123 with 3 assets
 ```
 
 And tracking confirmation:
+
 ```
 [ContentAnalytics] Experience event processed successfully: track-view - exp-abc123
 ```
