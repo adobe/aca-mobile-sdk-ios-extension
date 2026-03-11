@@ -83,6 +83,7 @@ struct ExperienceContent: Codable {
     let orgId: String
     let datastreamId: String
     let experienceId: String
+    let channel: String = "mobile"
 
     var textContent: [[String: Any]] { content.texts }
     var buttonContent: [[String: Any]]? { content.ctas }

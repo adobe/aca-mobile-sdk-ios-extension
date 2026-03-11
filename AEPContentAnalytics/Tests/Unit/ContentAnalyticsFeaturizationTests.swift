@@ -91,6 +91,7 @@ class ContentAnalyticsFeaturizationTests: XCTestCase {
         XCTAssertEqual(experienceContent.orgId, orgId)
         XCTAssertEqual(experienceContent.datastreamId, datastreamId)
         XCTAssertEqual(experienceContent.experienceId, experienceId)
+        XCTAssertEqual(experienceContent.channel, "mobile")
         XCTAssertNotNil(experienceContent.content)
     }
 
@@ -114,6 +115,7 @@ class ContentAnalyticsFeaturizationTests: XCTestCase {
         XCTAssertEqual(experienceContent.orgId, "TEST_ORG@AdobeOrg")
         XCTAssertEqual(experienceContent.datastreamId, "test-datastream")
         XCTAssertEqual(experienceContent.experienceId, "test-experience-id")
+        XCTAssertEqual(experienceContent.channel, "mobile")
         XCTAssertNotNil(experienceContent.content)
     }
 
@@ -141,6 +143,7 @@ class ContentAnalyticsFeaturizationTests: XCTestCase {
         XCTAssertTrue(jsonString?.contains("orgId") ?? false)
         XCTAssertTrue(jsonString?.contains("datastreamId") ?? false)
         XCTAssertTrue(jsonString?.contains("experienceId") ?? false)
+        XCTAssertTrue(jsonString?.contains("\"channel\":\"mobile\"") ?? false, "Should include channel field with value 'mobile'")
     }
 
     // MARK: - FeaturizationError Tests
