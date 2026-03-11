@@ -22,7 +22,7 @@ install! 'cocoapods', :warn_for_unused_master_specs_repo => false
 workspace 'AEPContentAnalytics'
 project 'AEPContentAnalytics.xcodeproj'
 
-pod 'SwiftLint', '0.52.0'
+pod 'SwiftLint', '0.63.2'
 
 # ==================
 # SHARED POD GROUPS
