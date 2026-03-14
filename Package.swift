@@ -29,7 +29,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/adobe/aepsdk-core-ios.git", .upToNextMajor(from: "5.0.0")),
-        .package(url: "https://github.com/adobe/aepsdk-edge-ios.git", .upToNextMajor(from: "5.0.0"))
+        .package(url: "https://github.com/adobe/aepsdk-edge-ios.git", .upToNextMajor(from: "5.0.3"))
         // NOTE: aepsdk-testutils-ios v5.0.x is incompatible with AEPCore 5.7.0
         // - FileManager extension missing import Foundation
         // - TestableExtensionRuntime protocol conformance issues
