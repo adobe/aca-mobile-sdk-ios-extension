@@ -299,6 +299,81 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         XCTAssertEqual(definition50?.assets.first, "https://example.com/asset-50.jpg")
     }
 
+    // MARK: - Experience Location Capture Tests
+    // Location is set from VIEW events, not at definition registration time.
+
+    func testUpdateExperienceLocation_ExistingDefinition_SetsLocation() {
+        // Given
+        stateManager.registerExperienceDefinition(
+            experienceId: "exp-loc",
+            assets: ["https://example.com/image.jpg"],
+            texts: [ContentItem(value: "Title")],
+            ctas: nil
+        )
+        XCTAssertNil(stateManager.getExperienceDefinition(for: "exp-loc")?.experienceLocation,
+                     "Location should be nil immediately after registration")
+
+        // When
+        stateManager.updateExperienceLocation(experienceId: "exp-loc", location: "homepage")
+
+        // Then
+        let definition = stateManager.getExperienceDefinition(for: "exp-loc")
+        XCTAssertEqual(definition?.experienceLocation, "homepage",
+                       "Location should be updated to the value from the VIEW event")
+    }
+
+    func testUpdateExperienceLocation_UpdatedMultipleTimes_KeepsLatest() {
+        // Given - same experience viewed at different locations across a session
+        stateManager.registerExperienceDefinition(
+            experienceId: "exp-multi-loc",
+            assets: ["https://example.com/image.jpg"],
+            texts: [ContentItem(value: "Title")],
+            ctas: nil
+        )
+
+        // When
+        stateManager.updateExperienceLocation(experienceId: "exp-multi-loc", location: "page-a")
+        stateManager.updateExperienceLocation(experienceId: "exp-multi-loc", location: "page-b")
+
+        // Then
+        XCTAssertEqual(
+            stateManager.getExperienceDefinition(for: "exp-multi-loc")?.experienceLocation,
+            "page-b",
+            "Should retain the most recently seen location"
+        )
+    }
+
+    func testUpdateExperienceLocation_NoDefinitionRegistered_DoesNotCrash() {
+        // Given - no definition for "exp-unknown"
+        // When/Then - should complete gracefully without crash
+        stateManager.updateExperienceLocation(experienceId: "exp-unknown", location: "homepage")
+        XCTAssertNil(stateManager.getExperienceDefinition(for: "exp-unknown"),
+                     "No definition should be created by updateExperienceLocation")
+    }
+
+    func testUpdateExperienceLocation_PreservesOtherDefinitionFields() {
+        // Given
+        let assets = ["https://example.com/a.jpg", "https://example.com/b.jpg"]
+        let texts = [ContentItem(value: "Title")]
+        let ctas = [ContentItem(value: "CTA")]
+        stateManager.registerExperienceDefinition(
+            experienceId: "exp-preserve",
+            assets: assets,
+            texts: texts,
+            ctas: ctas
+        )
+
+        // When
+        stateManager.updateExperienceLocation(experienceId: "exp-preserve", location: "some-page")
+
+        // Then - only location changes; assets/texts/ctas stay intact
+        let definition = stateManager.getExperienceDefinition(for: "exp-preserve")
+        XCTAssertEqual(definition?.assets, assets)
+        XCTAssertEqual(definition?.texts.count, 1)
+        XCTAssertEqual(definition?.ctas?.count, 1)
+        XCTAssertEqual(definition?.experienceLocation, "some-page")
+    }
+
     // MARK: - Featurization Tracking Tests
 
     func testMarkExperienceDefinitionAsSent_FirstTime_MarksAsSent() {

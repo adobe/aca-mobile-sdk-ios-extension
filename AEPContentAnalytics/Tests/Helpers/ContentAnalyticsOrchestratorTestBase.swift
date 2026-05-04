@@ -172,11 +172,11 @@ class ContentAnalyticsOrchestratorTestBase: XCTestCase {
         mockPrivacyValidator.shouldTrack = true
     }
 
-    // MARK: - Private Helpers
+    // MARK: - Helpers (internal for subclass use)
 
     /// Waits for async configuration update to complete
     /// This prevents race conditions where configuration isn't set yet when tests run
-    private func waitForConfiguration() {
+    func waitForConfiguration() {
         // Poll until configuration is set (with timeout)
         let startTime = Date()
         let timeout: TimeInterval = 1.0

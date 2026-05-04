@@ -168,6 +168,24 @@ class ContentAnalyticsOrchestrator: ContentAnalyticsOrchestrating {
             return
         }
 
+        // When excludeAssetsFromUntrackedExperience is true, exclude assets that belong to excluded experiences.
+        // Attribution: experiences are registered with asset URLs; we store all definitions (including excluded) so we can look up by asset.
+        if let config = state.getCurrentConfiguration(), config.excludeAssetsFromUntrackedExperience,
+           let assetURL = event.assetURL {
+            let definitionsContainingAsset = state.getDefinitionsContainingAsset(assetURL)
+            for definition in definitionsContainingAsset {
+                if let location = definition.experienceLocation, config.shouldExcludeExperience(location: location) {
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Asset excluded (belongs to untracked experience): \(location)")
+                    return
+                }
+            }
+            // Also exclude if asset event carries an excluded experience location (e.g. no definition was registered)
+            if let eventLocation = event.experienceLocation, config.shouldExcludeExperience(location: eventLocation) {
+                Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Asset excluded (experience untracked): \(eventLocation)")
+                return
+            }
+        }
+
         // Route to batch or immediate processing
         if state.batchingEnabled {
             batchCoordinator?.addAssetEvent(event)
@@ -181,14 +199,21 @@ class ContentAnalyticsOrchestrator: ContentAnalyticsOrchestrating {
     private func processValidatedExperienceEvent(_ event: Event) {
         guard event.experienceId != nil else { return }
 
-        // Check exclusion using EventExclusionFilter
+        // Store definition payload (assets/texts/CTAs) so we can attribute assets to experiences later.
+        // Must happen before exclusion so definitions for excluded experiences are still cached.
+        preprocessExperienceDefinition(event)
+
+        // Update the last-seen location for this experience from view events.
+        // Location is NOT part of the definition registration — the same experience can be viewed
+        // at different locations without re-registering. This must also happen before exclusion so
+        // that the location is captured even when the view event itself is filtered out.
+        captureExperienceLocation(event)
+
+        // Check exclusion using EventExclusionFilter (experience event not sent if excluded)
         if eventExclusionFilter.shouldExcludeExperience(event) {
             Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Experience excluded by pattern")
             return
         }
-
-        // Pre-process: Store experience definition if this is a definition event
-        preprocessExperienceDefinition(event)
 
         // Route to batch or immediate processing
         if state.batchingEnabled {
@@ -203,7 +228,8 @@ class ContentAnalyticsOrchestrator: ContentAnalyticsOrchestrating {
         Log.trace(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Processed experience event")
     }
 
-    /// Store experience definition for asset attribution if this is a registration event
+    /// Stores the experience definition payload (assets/texts/CTAs) for asset attribution.
+    /// Only processes definition-type events; location is handled separately via captureExperienceLocation.
     private func preprocessExperienceDefinition(_ event: Event) {
         guard event.isExperienceDefinition,
               let definitionData = event.extractExperienceDefinitionData() else {
@@ -218,5 +244,14 @@ class ContentAnalyticsOrchestrator: ContentAnalyticsOrchestrating {
         )
 
         Log.debug(label: ContentAnalyticsConstants.LogLabels.ORCHESTRATOR, "Stored experience definition: \(definitionData.experienceId) with \(definitionData.assets.count) assets")
+    }
+
+    /// Updates the last-seen location for an experience from any event that carries one.
+    /// Called for view/click events (and definition events if they happen to include a location)
+    /// before the exclusion filter, so the location is captured even for excluded experiences.
+    private func captureExperienceLocation(_ event: Event) {
+        guard let experienceId = event.experienceId,
+              let location = event.experienceLocation else { return }
+        state.updateExperienceLocation(experienceId: experienceId, location: location)
     }
 }

@@ -1,5 +1,12 @@
 # Release Notes
 
+## 5.0.2 (May 4, 2026)
+
+### Features
+- **Exclude assets from untracked experiences:** New configuration flag `excludeAssetsFromUntrackedExperience` — when enabled, asset events belonging to excluded experiences are suppressed, preventing orphaned asset tracking.
+
+---
+
 ## 5.0.1 (February 23, 2026)
 
 ### Bug Fixes

@@ -20,6 +20,8 @@ struct ExperienceDefinition: Codable {
     let texts: [ContentItem]
     let ctas: [ContentItem]?
     var sentToFeaturization: Bool
+    /// Experience location from registration (used for excludeAssetsFromUntrackedExperience)
+    var experienceLocation: String? = nil
 }
 
 class ContentAnalyticsStateManager {
@@ -72,9 +74,28 @@ class ContentAnalyticsStateManager {
                 ctas: ctas,
                 sentToFeaturization: false
             )
-            
+
             // Store in memory cache (handles LRU eviction if at capacity)
             self?.definitionCache.store(definition)
+        }
+    }
+
+    /// Updates the last-seen experience location for an existing definition.
+    /// Called from VIEW events (before exclusion filtering) so that asset exclusion can check
+    /// which location the experience was viewed at, without tying location to the definition registration.
+    func updateExperienceLocation(experienceId: String, location: String) {
+        stateQueue.sync { [weak self] in
+            guard let self,
+                  var definition = self.definitionCache.get(experienceId: experienceId) else { return }
+            definition.experienceLocation = location
+            self.definitionCache.update(definition)
+        }
+    }
+
+    /// Returns all registered experience definitions that include the given asset URL (for excludeAssetsFromUntrackedExperience).
+    func getDefinitionsContainingAsset(_ assetURL: String) -> [ExperienceDefinition] {
+        return stateQueue.sync {
+            definitionCache.getAllDefinitions().filter { $0.assets.contains(assetURL) }
         }
     }
 
