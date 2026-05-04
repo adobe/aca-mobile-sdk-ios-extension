@@ -36,6 +36,8 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
     var excludedAssetLocationsRegexp: String?
     var excludedAssetUrlsRegexp: String?
     var excludedExperienceLocationsRegexp: String?
+    /// When true, do not collect assets that belong to excluded experiences (default: false)
+    var excludeAssetsFromUntrackedExperience: Bool = false
 
     // MARK: - Adobe Configuration
 
@@ -213,7 +215,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case trackExperiences
         case excludedAssetLocationsRegexp, excludedAssetUrlsRegexp
-        case excludedExperienceLocationsRegexp
+        case excludedExperienceLocationsRegexp, excludeAssetsFromUntrackedExperience
         case experienceCloudOrgId, datastreamId, edgeEnvironment, edgeDomain, region
         case featurizationMaxRetries, featurizationRetryDelay
         case batchingEnabled, maxBatchSize, batchFlushInterval
@@ -229,6 +231,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
         excludedAssetLocationsRegexp = try container.decodeIfPresent(String.self, forKey: .excludedAssetLocationsRegexp)
         excludedAssetUrlsRegexp = try container.decodeIfPresent(String.self, forKey: .excludedAssetUrlsRegexp)
         excludedExperienceLocationsRegexp = try container.decodeIfPresent(String.self, forKey: .excludedExperienceLocationsRegexp)
+        excludeAssetsFromUntrackedExperience = try container.decodeIfPresent(Bool.self, forKey: .excludeAssetsFromUntrackedExperience) ?? false
         experienceCloudOrgId = try container.decodeIfPresent(String.self, forKey: .experienceCloudOrgId)
         datastreamId = try container.decodeIfPresent(String.self, forKey: .datastreamId)
         edgeEnvironment = try container.decodeIfPresent(String.self, forKey: .edgeEnvironment)
@@ -296,6 +299,10 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
                 if let pattern = value as? String, !pattern.isEmpty {
                     newConfig.excludedExperienceLocationsRegexp = pattern
                 }
+            case "excludeAssetsFromUntrackedExperience":
+                if let flag = value as? Bool {
+                    newConfig.excludeAssetsFromUntrackedExperience = flag
+                }
             default:
                 break
             }
@@ -323,6 +330,7 @@ struct ContentAnalyticsConfiguration: Codable, Equatable {
             "excludedAssetLocationsRegexp": excludedAssetLocationsRegexp as Any,
             "excludedAssetUrlsRegexp": excludedAssetUrlsRegexp as Any,
             "excludedExperienceLocationsRegexp": excludedExperienceLocationsRegexp as Any,
+            "excludeAssetsFromUntrackedExperience": excludeAssetsFromUntrackedExperience,
             "experienceCloudOrgId": experienceCloudOrgId as Any,
             "datastreamId": datastreamId as Any,
             "edgeEnvironment": edgeEnvironment as Any,

@@ -12,6 +12,7 @@
 | `contentanalytics.excludedAssetUrlsRegexp` | String | - | Exclude assets by URL |
 | `contentanalytics.excludedAssetLocationsRegexp` | String | - | Exclude assets by location |
 | `contentanalytics.excludedExperienceLocationsRegexp` | String | - | Exclude experiences by location |
+| `contentanalytics.excludeAssetsFromUntrackedExperience` | Bool | `false` | When true, do not collect assets that belong to excluded experiences |
 
 **Set via Launch UI** or programmatically:
 
@@ -79,6 +80,12 @@ Disable for immediate sends:
 ```json
 { "contentanalytics.excludedAssetLocationsRegexp": "^(debug|test).*" }
 { "contentanalytics.excludedExperienceLocationsRegexp": "^admin\\..*" }
+```
+
+To also exclude assets that belong to excluded experiences (e.g. assets on excluded pages):
+
+```json
+{ "contentanalytics.excludeAssetsFromUntrackedExperience": true }
 ```
 
 ---

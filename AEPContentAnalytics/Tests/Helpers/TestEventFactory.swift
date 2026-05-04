@@ -25,12 +25,14 @@ enum TestEventFactory {
     ///   - url: Asset URL
     ///   - location: Asset location
     ///   - interaction: Interaction type (view/click)
+    ///   - experienceLocation: Optional experience location (for excludeAssetsFromUntrackedExperience tests)
     ///   - extras: Optional extra data
     /// - Returns: Configured asset tracking event
     static func createAssetEvent(
         url: String,
         location: String,
         interaction: InteractionType,
+        experienceLocation: String? = nil,
         extras: [String: Any]? = nil
     ) -> Event {
         var data: [String: Any] = [
@@ -39,6 +41,9 @@ enum TestEventFactory {
             AssetTrackingEventPayload.RequiredFields.interactionType: interaction.stringValue
         ]
 
+        if let experienceLocation = experienceLocation {
+            data[ExperienceTrackingEventPayload.OptionalFields.experienceLocation] = experienceLocation
+        }
         if let extras = extras {
             data[AssetTrackingEventPayload.OptionalFields.assetExtras] = extras
         }
