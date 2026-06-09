@@ -249,11 +249,16 @@ public class ContentAnalytics: NSObject, Extension {
                 mappedKey = "edgeDomain"
                 Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped: edge.domain -> edgeDomain = \(value)")
             case "edge.configId":
-                // Skip edge.configId - it's for the main app, not Content Analytics
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Skipping: edge.configId (main app datastream)")
+                // Fallback datastream source. contentanalytics.configId (handled below) takes precedence.
+                if mappedConfig["datastreamId"] == nil {
+                    mappedConfig["datastreamId"] = value
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped: edge.configId -> datastreamId = \(value)")
+                } else {
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Skipping: edge.configId (contentanalytics.configId already present)")
+                }
                 continue
             case "configId":
-                // contentanalytics.configId → datastreamId (aligns with edge.configId naming)
+                // contentanalytics.configId takes precedence over edge.configId for the ACA datastream.
                 mappedKey = "datastreamId"
                 Log.debug(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Mapped: contentanalytics.configId -> datastreamId = \(value)")
             case "edge.environment":
@@ -272,9 +277,25 @@ public class ContentAnalytics: NSObject, Extension {
 
         // Convert to JSON data and decode
         guard let jsonData = try? JSONSerialization.data(withJSONObject: mappedConfig),
-              let config = try? JSONDecoder().decode(ContentAnalyticsConfiguration.self, from: jsonData) else {
+              var config = try? JSONDecoder().decode(ContentAnalyticsConfiguration.self, from: jsonData) else {
             Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Failed to decode configuration")
             return nil
+        }
+
+        // Surface validation issues from the remote config and clamp out-of-range batch size
+        // so a bad value cannot disable batching by silently failing the size check at runtime.
+        let validationErrors = config.validate()
+        if !validationErrors.isEmpty {
+            for error in validationErrors {
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Configuration validation issue: \(error.description)")
+            }
+            let minSize = ContentAnalyticsConstants.MIN_BATCH_SIZE
+            let maxSize = ContentAnalyticsConstants.MAX_BATCH_SIZE
+            if config.maxBatchSize < minSize || config.maxBatchSize > maxSize {
+                let clamped = min(max(config.maxBatchSize, minSize), maxSize)
+                Log.warning(label: ContentAnalyticsConstants.LogLabels.EXTENSION, "Clamping maxBatchSize from \(config.maxBatchSize) to \(clamped)")
+                config.maxBatchSize = clamped
+            }
         }
 
         let configSummary = "trackExperiences: \(config.trackExperiences) | edgeDomain: \(config.edgeDomain ?? "nil") | org: \(config.experienceCloudOrgId ?? "nil")"

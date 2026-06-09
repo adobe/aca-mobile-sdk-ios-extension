@@ -17,7 +17,7 @@ import UIKit
 import SwiftUI
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    @AppStorage("environmentFileId") private var environmentFileId = "staging/b42a0d18ad1d/1214c33dba3f/launch-b6ab335a603e-development"
+    private let environmentFileId = "staging/b42a0d18ad1d/0d66a105f7d6/launch-6f3548049987-development"
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
@@ -53,6 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // Configure with Launch environment
             MobileCore.configureWith(appId: self.environmentFileId)
             print("⚙️  Launch configuration loaded")
+            
             
             // Start lifecycle if not in background
             if appState != .background {

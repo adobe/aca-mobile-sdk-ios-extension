@@ -13,7 +13,7 @@ import SwiftUI
 
 struct ConfigView: View {
     @AppStorage("currentEcid") private var currentEcid = ""
-    @AppStorage("environmentFileId") private var environmentFileId = "staging/b42a0d18ad1d/20b6e71fd073/launch-d7aa2913937f-development"
+    @AppStorage("environmentFileId") private var environmentFileId = "staging/b42a0d18ad1d/0d66a105f7d6/launch-6f3548049987-development"
     @State private var assuranceURL = ""
     @State private var showAssuranceSuccessDialog = false
     @State private var showAssuranceErrorDialog = false
@@ -65,7 +65,7 @@ struct ConfigView: View {
                     
                     Button(action: {
                         // Reset to the new default Launch ID
-                        environmentFileId = "staging/b42a0d18ad1d/20b6e71fd073/launch-d7aa2913937f-development"
+                        environmentFileId = "staging/b42a0d18ad1d/0d66a105f7d6/launch-6f3548049987-development"
                     }) {
                         Label("Reset to New Launch ID", systemImage: "arrow.clockwise")
                             .foregroundColor(.blue)

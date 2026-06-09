@@ -1,5 +1,15 @@
 # Release Notes
 
+## 5.0.3 (June 9, 2026)
+
+### Bug Fixes
+- **Featurization definition state:** Experience definitions are now marked as sent to the featurization service only after the hit is accepted by the queue. Previously the state was flipped unconditionally, so failures (missing datastream, consent denied, encode failures) silently prevented retries within the session.
+- **`edge.configId` fallback:** When `contentanalytics.configId` is not present in the Launch configuration, the extension now falls back to `edge.configId` for the featurization datastream, matching the documented behavior.
+- **Runtime configuration validation:** Remote configurations are now validated after decode. Validation issues are logged, and `maxBatchSize` values outside the supported range are clamped to safe bounds instead of being accepted silently.
+- **Default configuration after identity reset:** `ConfigurationManager.reset()` now restores the default configuration instead of leaving it `nil`, so tracking continues to function until a new Configuration shared state arrives.
+
+---
+
 ## 5.0.2 (May 4, 2026)
 
 ### Features
@@ -43,8 +53,8 @@ First stable release. Includes all features from 5.0.0-beta.1.
 - Comprehensive test coverage (99%+)
 
 **Platforms**
-- iOS 12.0+
-- tvOS 12.0+
+- iOS 15.0+
+- tvOS 15.0+
 
 **Dependencies**
 - AEPCore 5.0.0+

@@ -60,9 +60,12 @@ class ConfigurationManager: ConfigurationManaging {
         shouldTrack(location, using: { !$0.shouldExcludeAsset(location: $1) })
     }
     
+    /// Restores the default configuration so tracking remains operational after an identity reset
+    /// until the next Configuration shared state arrives. Previously this left configuration nil,
+    /// which caused `EventValidator` to reject events with `.invalidConfiguration` until reconfig.
     func reset() {
         queue.sync {
-            configuration = nil
+            configuration = ContentAnalyticsConfiguration()
         }
     }
 }
