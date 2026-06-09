@@ -31,7 +31,7 @@ struct TrackedImageExamples: View {
                         .padding(.horizontal)
                     
                     TrackedAsyncImage(
-                        url: URL(string: "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg")!,
+                        url: URL(string: "https://picsum.photos/seed/aca-demo-simple/400/400")!,
                         imageLocation: "examples/simple",
                         imageType: "product",
                         content: { image in
@@ -60,7 +60,7 @@ struct TrackedImageExamples: View {
                         .padding(.horizontal)
                     
                     TrackedAsyncImage(
-                        url: URL(string: "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg")!,
+                        url: URL(string: "https://picsum.photos/seed/aca-demo-product-card/400/400")!,
                         imageLocation: "examples/product-card",
                         imageType: "product-hero",
                         content: { image in
@@ -90,7 +90,7 @@ struct TrackedImageExamples: View {
                         .padding(.horizontal)
                     
                     TrackedAsyncImage(
-                        url: URL(string: "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg")!,
+                        url: URL(string: "https://picsum.photos/seed/aca-demo-hero/600/360")!,
                         imageLocation: "examples/hero",
                         imageType: "hero-banner",
                         content: { image in
@@ -166,7 +166,7 @@ struct TrackedImageExamples: View {
                         .padding(.horizontal)
                     
                     TrackedAsyncImage(
-                        url: URL(string: "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg")!,
+                        url: URL(string: "https://picsum.photos/seed/aca-demo-banner/400/400")!,
                         imageLocation: "examples/banner/top",
                         imageType: "promo-banner",
                         content: { image in
@@ -189,12 +189,12 @@ struct TrackedImageExamples: View {
         .navigationBarTitleDisplayMode(.large)
     }
     
-    // Sample image URLs for the gallery - using working URLs
+    // Sample image URLs for the gallery (stable placeholder CDN; Luma enablement DAM URLs often 404)
     private let sampleImageURLs = [
-        "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg",
-        "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg",
-        "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg",
-        "https://luma.enablementadobe.com/content/dam/luma/en/products/women/tops/hoodies-&-sweatshirts/wh03-red_main.jpg"
+        "https://picsum.photos/seed/aca-gallery-0/240/240",
+        "https://picsum.photos/seed/aca-gallery-1/240/240",
+        "https://picsum.photos/seed/aca-gallery-2/240/240",
+        "https://picsum.photos/seed/aca-gallery-3/240/240"
     ]
 }
 

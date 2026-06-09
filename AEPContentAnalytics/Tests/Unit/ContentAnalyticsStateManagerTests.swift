@@ -618,10 +618,12 @@ class ContentAnalyticsStateManagerTests: XCTestCase {
         }
         wait(for: [expectation], timeout: 0.5)
 
-        // Then
-        XCTAssertNil(stateManager.getCurrentConfiguration(), "Configuration should be cleared")
+        // Then - experience definitions are cleared but configuration is restored to defaults
+        // so tracking remains operational until the next Configuration shared state arrives.
+        let resetConfig = stateManager.getCurrentConfiguration()
+        XCTAssertNotNil(resetConfig, "Configuration should be restored to defaults, not cleared")
         XCTAssertNil(stateManager.getExperienceDefinition(for: "exp-1"), "Experience definitions should be cleared")
-        XCTAssertFalse(stateManager.batchingEnabled, "Batching should be disabled after reset")
+        XCTAssertTrue(stateManager.batchingEnabled, "Default configuration has batching enabled")
     }
 
     func testReset_MultipleExperiences_ClearsAll() {

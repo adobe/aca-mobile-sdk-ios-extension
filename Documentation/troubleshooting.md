@@ -158,6 +158,15 @@ This is normal for temporary outages. The extension retries automatically with e
 1. Check service health status
 2. Contact Adobe support
 
+### Demo app product images missing or show a photo placeholder
+
+**Cause:** `AsyncImage` loads URLs from `products.json`. Older demos pointed at `luma.enablementadobe.com` DAM paths that often return **404** if assets move or the host changes.
+
+**Solution:**
+1. Confirm the device or simulator has internet access.
+2. Update `imageUrl` values in `ContentAnalyticsDemoApp/Model/Data/products.json` to URLs that return **200** (the demo uses deterministic `picsum.photos` URLs per SKU).
+3. If you use your own CDN, add **ATS exceptions** in `Info.plist` only when required (see below).
+
 ### "No response from featurization service"
 
 **Cause:** Network issues or service unreachable.

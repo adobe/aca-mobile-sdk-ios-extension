@@ -159,20 +159,25 @@ class ConfigurationManagerTests: XCTestCase {
     
     // MARK: - Reset Tests
     
-    func testReset_ClearsConfiguration() {
-        // Given
+    func testReset_RestoresDefaultConfiguration() {
+        // Given - non-default configuration
         var config = ContentAnalyticsConfiguration()
         config.batchingEnabled = true
         config.maxBatchSize = 50
+        config.experienceCloudOrgId = "TEST@AdobeOrg"
         configManager.updateConfiguration(config)
-        XCTAssertNotNil(configManager.getCurrentConfiguration())
-        
+        XCTAssertEqual(configManager.getCurrentConfiguration()?.maxBatchSize, 50)
+
         // When
         configManager.reset()
-        
-        // Then
-        XCTAssertNil(configManager.getCurrentConfiguration())
-        XCTAssertFalse(configManager.batchingEnabled)
+
+        // Then - configuration is restored to defaults (not nil) so tracking remains operational
+        // until a new Configuration shared state arrives.
+        let resetConfig = configManager.getCurrentConfiguration()
+        XCTAssertNotNil(resetConfig, "Configuration should be restored to defaults, not cleared")
+        XCTAssertEqual(resetConfig?.maxBatchSize, ContentAnalyticsConfiguration().maxBatchSize)
+        XCTAssertNil(resetConfig?.experienceCloudOrgId)
+        XCTAssertTrue(configManager.batchingEnabled, "Default config has batching enabled")
     }
     
     // MARK: - Thread Safety Tests

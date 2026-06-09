@@ -44,11 +44,15 @@ class ExperienceEventProcessor: ExperienceEventProcessing {
         let eventsByExperienceId = Dictionary(grouping: events) { $0.experienceId ?? "" }
         
         for (experienceId, eventsForExperience) in eventsByExperienceId where !experienceId.isEmpty {
-            // Send definition to featurization service if not already sent
+            // Send definition to featurization service if not already sent.
+            // Only mark as sent if the queue accepts the hit; otherwise allow retry on the next event.
             if !state.hasExperienceDefinitionBeenSent(for: experienceId) {
-                sendExperienceDefinitionEvent(experienceId: experienceId)
-                state.markExperienceDefinitionAsSent(experienceId: experienceId)
-                Log.debug(label: ContentAnalyticsConstants.LogLabels.EXPERIENCE_PROCESSOR, "Sent experience definition | ID: \(experienceId)")
+                if sendExperienceDefinitionEvent(experienceId: experienceId) {
+                    state.markExperienceDefinitionAsSent(experienceId: experienceId)
+                    Log.debug(label: ContentAnalyticsConstants.LogLabels.EXPERIENCE_PROCESSOR, "Sent experience definition | ID: \(experienceId)")
+                } else {
+                    Log.warning(label: ContentAnalyticsConstants.LogLabels.EXPERIENCE_PROCESSOR, "Failed to queue experience definition - will retry on next event | ID: \(experienceId)")
+                }
             } else {
                 Log.debug(label: ContentAnalyticsConstants.LogLabels.EXPERIENCE_PROCESSOR, "Skipping featurization - already sent | ID: \(experienceId)")
             }
@@ -96,8 +100,8 @@ class ExperienceEventProcessor: ExperienceEventProcessing {
     
     // MARK: - Private Helpers
     
-    private func sendExperienceDefinitionEvent(experienceId: String) {
-        featurizationCoordinator.queueExperience(experienceId: experienceId)
+    private func sendExperienceDefinitionEvent(experienceId: String) -> Bool {
+        return featurizationCoordinator.queueExperience(experienceId: experienceId)
     }
     
     private func sendExperienceInteractionEvent(

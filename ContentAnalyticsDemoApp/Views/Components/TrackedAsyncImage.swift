@@ -56,7 +56,11 @@ struct TrackedAsyncImage<Content: View, Placeholder: View>: View {
                     }
                 
             case .failure:
-                placeholder()
+                // Remote URLs in demo data can 404; avoid an endless loading spinner.
+                Image(systemName: "photo")
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.secondary)
+                    .font(.title2)
                 
             @unknown default:
                 placeholder()

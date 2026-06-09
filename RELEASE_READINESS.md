@@ -52,7 +52,7 @@ This document tracks the release readiness of the AEP Content Analytics iOS Exte
 
 ## ⚠️ Pre-Release Tasks
 
-- [ ] **Align version number** (currently 5.0.0, should match Android)
+- [ ] **Align version number** (currently 5.0.1, should match Android)
 - [ ] Run `make lint` and fix any warnings
 - [ ] Run full test suite: `make test`
 - [ ] Build XCFramework: `make archive`

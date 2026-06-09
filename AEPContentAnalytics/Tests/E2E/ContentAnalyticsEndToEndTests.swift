@@ -981,6 +981,58 @@ final class ContentAnalyticsEndToEndTests: XCTestCase {
         XCTAssertNil(config, "Edge event should not include config override when not configured")
     }
 
+    // MARK: - edge.configId Fallback Tests
+    //
+    // The configuration mapper documents that if `contentanalytics.configId` is not present,
+    // `edge.configId` is used as the datastream id for Content Analytics. These tests guard
+    // against regression of that fallback.
+
+    func testEdgeConfigIdFallback_OnlyEdgeConfigIdPresent_UsedAsDatastream() {
+        // Given - Configuration with only edge.configId
+        let edgeOnlyDatastream = "edge-only-datastream"
+        sendConfiguration([
+            "edge.configId": edgeOnlyDatastream,
+            "contentanalytics.batchingEnabled": false
+        ])
+        mockRuntime.resetDispatchedEventAndCreatedSharedStates()
+
+        // When
+        trackAssetAndWait(url: "https://example.com/image.jpg", location: "home")
+
+        // Then - Edge event should include edge.configId as the datastream override
+        let edgeEvents = waitForEdgeEvents(count: 1)
+        XCTAssertEqual(edgeEvents.count, 1, "Should dispatch one Edge event")
+
+        let config = edgeEvents[0].data?["config"] as? [String: Any]
+        let datastreamOverride = config?["datastreamIdOverride"] as? String
+        XCTAssertEqual(datastreamOverride, edgeOnlyDatastream,
+                       "edge.configId should fall back to datastream when contentanalytics.configId is absent")
+    }
+
+    func testEdgeConfigIdFallback_BothPresent_ContentAnalyticsWins() {
+        // Given - Both keys present; contentanalytics.configId should win
+        let contentAnalyticsDatastream = "ca-specific-datastream"
+        let edgeDatastream = "main-app-datastream"
+        sendConfiguration([
+            "edge.configId": edgeDatastream,
+            "contentanalytics.configId": contentAnalyticsDatastream,
+            "contentanalytics.batchingEnabled": false
+        ])
+        mockRuntime.resetDispatchedEventAndCreatedSharedStates()
+
+        // When
+        trackAssetAndWait(url: "https://example.com/image.jpg", location: "home")
+
+        // Then
+        let edgeEvents = waitForEdgeEvents(count: 1)
+        XCTAssertEqual(edgeEvents.count, 1, "Should dispatch one Edge event")
+
+        let config = edgeEvents[0].data?["config"] as? [String: Any]
+        let datastreamOverride = config?["datastreamIdOverride"] as? String
+        XCTAssertEqual(datastreamOverride, contentAnalyticsDatastream,
+                       "contentanalytics.configId should take precedence over edge.configId")
+    }
+
     func testDatastreamOverride_AppliedToExperienceEvents() {
         // Given - Configuration with custom datastream
         let customDatastreamId = "custom-content-analytics-datastream"
